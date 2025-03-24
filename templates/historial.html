@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Historial de Envíos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Historial de Envíos</h2>
+
+        <table border="1" cellspacing="0" cellpadding="5">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Seguimiento</th>
+                    <th>Remitente</th>
+                    <th>DNI Rem</th>
+                    <th>Cel Rem</th>
+                    <th>Destinatario</th>
+                    <th>DNI Dest</th>
+                    <th>CP Dest</th>
+                    <th>Peso</th>
+                    <th>Frágil</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for envio in envios %}
+                <tr>
+                    <td>{{ envio[0] }}</td>
+                    <td>{{ envio[1] }}</td>
+                    <td>{{ envio[2] }}</td>
+                    <td>{{ envio[3] }}</td>
+                    <td>{{ envio[4] }}</td>
+                    <td>{{ envio[5] }}</td>
+                    <td>{{ envio[6] }}</td>
+                    <td>{{ envio[7] }}</td>
+                    <td>{{ envio[8] }} KG</td>
+                    <td>{% if envio[9] == 1 %}Sí{% else %}No{% endif %}</td>
+                    <td>{{ envio[10] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
+        <a href="{{ url_for('export_csv') }}"><button>Exportar CSV</button></a>
+        <br><br>
+        <a href="{{ url_for('index') }}"><button>Volver al Generador</button></a>
+    </div>
+</body>
+</html>
+

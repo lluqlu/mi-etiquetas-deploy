@@ -1,24 +1,65 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, redirect, url_for
 import qrcode
-import json
+import sqlite3
 import os
+import csv
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import portrait
 
 app = Flask(__name__)
 
+# --------- DB INIT --------- #
+def init_db():
+    conn = sqlite3.connect('seguimiento.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS contador (id INTEGER PRIMARY KEY, secuencia INTEGER)''')
+    c.execute('''INSERT OR IGNORE INTO contador (id, secuencia) VALUES (1, 0)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS envios (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    numero_seguimiento TEXT,
+                    remitente TEXT,
+                    dni_rem TEXT,
+                    celular_rem TEXT,
+                    destinatario TEXT,
+                    dni_dest TEXT,
+                    cp_dest TEXT,
+                    peso TEXT,
+                    fragil INTEGER,
+                    observaciones TEXT
+                )''')
+    conn.commit()
+    conn.close()
+
+
+init_db()
+
+# --------- CONTADOR --------- #
+def get_next_tracking(cp_dest):
+    conn = sqlite3.connect('seguimiento.db')
+    c = conn.cursor()
+    c.execute('SELECT secuencia FROM contador WHERE id=1')
+    secuencia = c.fetchone()[0] + 1
+    c.execute('UPDATE contador SET secuencia = ? WHERE id=1', (secuencia,))
+    conn.commit()
+    conn.close()
+    return f"AR-{cp_dest}-{str(secuencia).zfill(2)}"
+
+# --------- FLASK --------- #
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         modo = request.form.get('modo')
         datos = {
             'remitente': request.form.get('remitente'),
+            'dni_rem': request.form.get('dni_rem'),
+            'celular_rem': request.form.get('celular_rem'),
             'direccion_rem': request.form.get('direccion_rem'),
             'cp_rem': request.form.get('cp_rem'),
             'ciudad_rem': request.form.get('ciudad_rem'),
             'prov_rem': request.form.get('prov_rem'),
             'destinatario': request.form.get('destinatario'),
+            'dni_dest': request.form.get('dni_dest'),
             'direccion_dest': request.form.get('direccion_dest'),
             'cp_dest': request.form.get('cp_dest'),
             'ciudad_dest': request.form.get('ciudad_dest'),
@@ -33,7 +74,31 @@ def index():
 
     return render_template('formulario.html')
 
+# --------- DASHBOARD --------- #
+@app.route('/historial')
+def historial():
+    conn = sqlite3.connect('seguimiento.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM envios ORDER BY id DESC")
+    envios = c.fetchall()
+    conn.close()
+    return render_template('historial.html', envios=envios)
 
+@app.route('/export-csv')
+def export_csv():
+    conn = sqlite3.connect('seguimiento.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM envios ORDER BY id DESC")
+    rows = c.fetchall()
+    conn.close()
+
+    with open("envios.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["ID", "Seguimiento", "Remitente", "DNI Rem", "Cel Rem", "Destinatario", "DNI Dest", "CP Dest", "Peso", "Frágil", "Observaciones"])
+        writer.writerows(rows)
+    return send_file("envios.csv", as_attachment=True)
+
+# --------- PDF --------- #
 def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
     qr = qrcode.make(f"tel:{celular_dest}")
     qr.save(archivo_salida)
@@ -41,10 +106,16 @@ def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
 def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     generar_qr_llamada(data['celular_dest'])
 
+    if modo == '1':
+        numero_seguimiento = get_next_tracking(data['cp_dest'])
+    else:
+        numero_seguimiento = "-"
+
+    registrar_envio(data, numero_seguimiento)
+
     c = canvas.Canvas(archivo_salida, pagesize=portrait((283, 425)))
 
-    if modo == '1':  # Courier Propio
-        numero_seguimiento = f"AR-{data['cp_dest']}-01"
+    if modo == '1':
         c.setFont("Helvetica-Bold", 8)
         c.drawString(180, 415, f"TRACK: {numero_seguimiento}")
 
@@ -53,13 +124,17 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.drawImage("static/qr.png", 20, 340, width=80, height=80)
 
+    # Flecha arriba al lado derecho debajo del peso
+    if data['fragil']:
+        c.drawImage("static/flecha_arriba.png", 200, 340, width=50, height=40)
+
     c.setFont("Helvetica-Bold", 9)
     c.drawString(20, 320, "REMITENTE")
     c.setFont("Helvetica", 8)
     c.drawString(20, 308, data['remitente'])
-    c.drawString(20, 295, data['direccion_rem'])
-    c.drawString(20, 282, f"CP: {data['cp_rem']}")
-    c.drawString(20, 270, f"{data['ciudad_rem']} - {data['prov_rem']}")
+    c.drawString(20, 295, f"DNI: {data['dni_rem']}")
+    c.drawString(20, 282, f"Cel: {data['celular_rem']}")
+    c.drawString(20, 270, f"CP: {data['cp_rem']}")
 
     c.line(15, 260, 270, 260)
 
@@ -72,7 +147,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.drawString(20, 185, "DESTINATARIO")
     c.setFont("Helvetica", 8)
     c.drawString(20, 172, data['destinatario'])
-    c.drawString(20, 159, data['direccion_dest'])
+    c.drawString(20, 159, f"DNI: {data['dni_dest']}")
     c.drawString(20, 146, data['ciudad_dest'].upper())
     c.drawString(20, 133, data['prov_dest'].upper())
 
@@ -85,13 +160,22 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
         c.setFont("Helvetica-Bold", 12)
         c.drawString(20, 100, "⚠ FRÁGIL - MANIPULAR CON CUIDADO ⚠")
         c.drawImage("static/fragil.png", 60, 50, width=50, height=40)
-        c.drawImage("static/flecha_arriba.png", 140, 50, width=50, height=40)
 
     if data['observaciones']:
         c.setFont("Helvetica", 8)
         c.drawString(20, 30, f"OBS: {data['observaciones']}")
 
     c.save()
+
+# --------- REGISTRO --------- #
+def registrar_envio(data, numero_seguimiento):
+    conn = sqlite3.connect('seguimiento.db')
+    c = conn.cursor()
+    c.execute('''INSERT INTO envios (numero_seguimiento, remitente, dni_rem, celular_rem, destinatario, dni_dest, cp_dest, peso, fragil, observaciones)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+              (numero_seguimiento, data['remitente'], data['dni_rem'], data['celular_rem'], data['destinatario'], data['dni_dest'], data['cp_dest'], data['peso'], int(data['fragil']), data['observaciones']))
+    conn.commit()
+    conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True)
