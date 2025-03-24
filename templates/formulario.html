@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generador de Etiquetas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Generador de Etiquetas - Courier</h2>
+
+        <form method="POST">
+
+            <label>Modo de uso:</label>
+            <select name="modo">
+                <option value="1">Courier Propio</option>
+                <option value="2">Logística Externa</option>
+            </select>
+
+            <div class="grid">
+                <!-- Columna Remitente -->
+                <div>
+                    <h3>Remitente</h3>
+                    <label>Nombre:</label>
+                    <input type="text" name="remitente">
+
+                    <label>Dirección:</label>
+                    <input type="text" name="direccion_rem">
+
+                    <label>CP:</label>
+                    <input type="text" name="cp_rem">
+
+                    <label>Ciudad:</label>
+                    <input type="text" name="ciudad_rem">
+
+                    <label>Provincia:</label>
+                    <input type="text" name="prov_rem">
+                </div>
+
+                <!-- Columna Destinatario -->
+                <div>
+                    <h3>Destinatario</h3>
+                    <label>Nombre:</label>
+                    <input type="text" name="destinatario">
+
+                    <label>Dirección:</label>
+                    <input type="text" name="direccion_dest">
+
+                    <label>CP:</label>
+                    <input type="text" name="cp_dest">
+
+                    <label>Ciudad:</label>
+                    <input type="text" name="ciudad_dest">
+
+                    <label>Provincia:</label>
+                    <input type="text" name="prov_dest">
+
+                    <label>Celular:</label>
+                    <input type="text" name="celular_dest">
+                </div>
+            </div>
+
+            <h3>Datos adicionales</h3>
+            <label>Peso (kg):</label>
+            <input type="text" name="peso">
+
+            <label>¿Es frágil?</label>
+            <select name="fragil">
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+            </select>
+
+            <label>Observaciones (máx 50 caracteres):</label>
+            <input type="text" name="observaciones" maxlength="50">
+
+            <button type="submit">Generar Etiqueta</button>
+        </form>
+    </div>
+</body>
+</html>
+
