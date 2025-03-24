@@ -34,7 +34,7 @@ def index():
     return render_template('formulario.html')
 
 
-def generar_qr_llamada(celular_dest, archivo_salida="qr.png"):
+def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
     qr = qrcode.make(f"tel:{celular_dest}")
     qr.save(archivo_salida)
 
@@ -51,7 +51,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.setFont("Helvetica-Bold", 10)
     c.drawString(200, 405, f"PESO: {data['peso']}KG")
 
-    c.drawImage("qr.png", 20, 340, width=80, height=80)
+    c.drawImage("static/qr.png", 20, 340, width=80, height=80)
 
     c.setFont("Helvetica-Bold", 9)
     c.drawString(20, 320, "REMITENTE")
@@ -66,7 +66,6 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     if modo == '1':
         barcode_draw = code128.Code128(numero_seguimiento, barHeight=30, barWidth=0.8)
         barcode_draw.drawOn(c, 50, 215)
-    # SIEMPRE deja la línea divisoria (modo 1 y modo 2)
     c.line(15, 200, 270, 200)
 
     c.setFont("Helvetica-Bold", 9)
@@ -87,7 +86,6 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
         c.drawString(20, 100, "⚠ FRÁGIL - MANIPULAR CON CUIDADO ⚠")
         c.drawImage("static/fragil.png", 60, 50, width=50, height=40)
         c.drawImage("static/flecha_arriba.png", 140, 50, width=50, height=40)
-
 
     if data['observaciones']:
         c.setFont("Helvetica", 8)
