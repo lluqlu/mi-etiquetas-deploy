@@ -157,7 +157,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     if data['fragil']:
         c.setFont("Helvetica-Bold", 12)
         c.drawCentredString(140, 80, "⚠ FRÁGIL - MANIPULAR CON CUIDADO ⚠")
-        c.drawImage("static/fragil.png", 110, 50, width=100, height=40)
+        c.drawImage("static/fragil.png", 110, 80, width=100, height=40)
 
     if data['observaciones']:
         c.setFont("Helvetica", 8)
