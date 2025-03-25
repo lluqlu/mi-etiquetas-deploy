@@ -74,30 +74,6 @@ def index():
 
     return render_template('formulario.html')
 
-# --------- DASHBOARD --------- #
-@app.route('/historial')
-def historial():
-    conn = sqlite3.connect('seguimiento.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM envios ORDER BY id DESC")
-    envios = c.fetchall()
-    conn.close()
-    return render_template('historial.html', envios=envios)
-
-@app.route('/export-csv')
-def export_csv():
-    conn = sqlite3.connect('seguimiento.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM envios ORDER BY id DESC")
-    rows = c.fetchall()
-    conn.close()
-
-    with open("envios.csv", "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["ID", "Seguimiento", "Remitente", "DNI Rem", "Cel Rem", "Destinatario", "DNI Dest", "CP Dest", "Peso", "Frágil", "Observaciones"])
-        writer.writerows(rows)
-    return send_file("envios.csv", as_attachment=True)
-
 # --------- PDF --------- #
 def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
     qr = qrcode.make(f"tel:{celular_dest}")
@@ -124,7 +100,6 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.drawImage("static/qr.png", 20, 340, width=80, height=80)
 
-    # Flecha arriba al lado derecho debajo del peso
     if data['fragil']:
         c.drawImage("static/flecha_arriba.png", 200, 340, width=50, height=40)
 
@@ -134,9 +109,10 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.drawString(20, 308, data['remitente'])
     c.drawString(20, 295, f"DNI: {data['dni_rem']}")
     c.drawString(20, 282, f"Cel: {data['celular_rem']}")
-    c.drawString(20, 270, f"CP: {data['cp_rem']}")
+    c.drawString(20, 270, data['direccion_rem'])
+    c.drawString(20, 257, f"CP: {data['cp_rem']} - {data['ciudad_rem']} - {data['prov_rem']}")
 
-    c.line(15, 260, 270, 260)
+    c.line(15, 250, 270, 250)
 
     if modo == '1':
         barcode_draw = code128.Code128(numero_seguimiento, barHeight=30, barWidth=0.8)
@@ -148,11 +124,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.setFont("Helvetica", 8)
     c.drawString(20, 172, data['destinatario'])
     c.drawString(20, 159, f"DNI: {data['dni_dest']}")
-    c.drawString(20, 146, data['ciudad_dest'].upper())
-    c.drawString(20, 133, data['prov_dest'].upper())
-
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(180, 133, f"CP: {data['cp_dest']}")
+    c.drawString(20, 146, f"CP: {data['cp_dest']} - {data['ciudad_dest'].upper()} - {data['prov_dest'].upper()}")
 
     c.line(15, 120, 270, 120)
 
@@ -167,6 +139,30 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.save()
 
+# --------- DASHBOARD --------- #
+@app.route('/historial')
+def historial():
+    conn = sqlite3.connect('seguimiento.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM envios ORDER BY id DESC")
+    envios = c.fetchall()
+    conn.close()
+    return render_template('historial.html', envios=envios)
+
+@app.route('/export-csv')
+def export_csv():
+    conn = sqlite3.connect('seguimiento.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM envios ORDER BY id DESC")
+    rows = c.fetchall()
+    conn.close()
+
+    with open("envios.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["ID", "Seguimiento", "Remitente", "DNI Rem", "Cel Rem", "Destinatario", "DNI Dest", "CP Dest", "Peso", "Frágil", "Observaciones"])
+        writer.writerows(rows)
+    return send_file("envios.csv", as_attachment=True)
+
 # --------- REGISTRO --------- #
 def registrar_envio(data, numero_seguimiento):
     conn = sqlite3.connect('seguimiento.db')
@@ -179,3 +175,4 @@ def registrar_envio(data, numero_seguimiento):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
