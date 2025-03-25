@@ -92,8 +92,9 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c = canvas.Canvas(archivo_salida, pagesize=portrait((283, 425)))
 
     if modo == '1':
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(180, 415, f"TRACK: {numero_seguimiento}")
+        barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.0)
+        barcode_width = 150
+        barcode.drawOn(c, 66, 235)
 
     c.setFont("Helvetica-Bold", 10)
     c.drawString(200, 405, f"PESO: {data['peso']}KG")
@@ -113,13 +114,6 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.drawString(20, 257, f"CP: {data['cp_rem']} - {data['ciudad_rem']} - {data['prov_rem']}")
 
     c.line(15, 250, 270, 250)
-
-    if modo == '1':
-        barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.2)
-        barcode.drawOn(c, 100, 215)
-        c.setFont("Helvetica-Bold", 10)
-        c.drawCentredString(150, 200, numero_seguimiento)
-    c.line(15, 190, 270, 190)
 
     c.setFont("Helvetica-Bold", 9)
     c.drawString(20, 175, "DESTINATARIO")
@@ -184,3 +178,4 @@ def registrar_envio(data, numero_seguimiento):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
