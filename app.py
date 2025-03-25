@@ -115,27 +115,36 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.line(15, 250, 270, 250)
 
     if modo == '1':
-        barcode_draw = code128.Code128(numero_seguimiento, barHeight=30, barWidth=0.8)
-        barcode_draw.drawOn(c, 50, 215)
-    c.line(15, 200, 270, 200)
+        barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.2)
+        barcode.drawOn(c, 100, 215)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(150, 200, numero_seguimiento)
+    c.line(15, 190, 270, 190)
 
     c.setFont("Helvetica-Bold", 9)
-    c.drawString(20, 185, "DESTINATARIO")
+    c.drawString(20, 175, "DESTINATARIO")
     c.setFont("Helvetica", 8)
-    c.drawString(20, 172, data['destinatario'])
-    c.drawString(20, 159, f"DNI: {data['dni_dest']}")
-    c.drawString(20, 146, f"CP: {data['cp_dest']} - {data['ciudad_dest'].upper()} - {data['prov_dest'].upper()}")
+    c.drawString(20, 162, data['destinatario'])
+    c.drawString(20, 149, f"DNI: {data['dni_dest']}")
+    c.drawString(20, 136, f"Cel: {data['celular_dest']}")
+    c.drawString(20, 123, data['direccion_dest'])
 
-    c.line(15, 120, 270, 120)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawRightString(260, 123, f"CP: {data['cp_dest']}")
+
+    c.setFont("Helvetica", 8)
+    c.drawString(20, 110, f"{data['ciudad_dest'].upper()} - {data['prov_dest'].upper()}")
+
+    c.line(15, 100, 270, 100)
 
     if data['fragil']:
         c.setFont("Helvetica-Bold", 12)
-        c.drawString(20, 100, "⚠ FRÁGIL - MANIPULAR CON CUIDADO ⚠")
-        c.drawImage("static/fragil.png", 60, 50, width=50, height=40)
+        c.drawCentredString(140, 80, "⚠ FRÁGIL - MANIPULAR CON CUIDADO ⚠")
+        c.drawImage("static/fragil.png", 115, 40, width=50, height=40)
 
     if data['observaciones']:
         c.setFont("Helvetica", 8)
-        c.drawString(20, 30, f"OBS: {data['observaciones']}")
+        c.drawString(20, 25, f"OBS: {data['observaciones']}")
 
     c.save()
 
@@ -175,4 +184,3 @@ def registrar_envio(data, numero_seguimiento):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
