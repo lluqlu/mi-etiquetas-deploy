@@ -94,7 +94,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     if modo == '1':
         barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.0)
         barcode_width = 150
-        barcode.drawOn(c, 66, 235)
+        barcode.drawOn(c, 66, 205)
 
     c.setFont("Helvetica-Bold", 10)
     c.drawString(200, 405, f"PESO: {data['peso']}KG")
