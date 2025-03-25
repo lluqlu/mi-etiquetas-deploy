@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for
+from flask import Flask, render_template, request, send_file, redirect, url_for, Response
 import qrcode
 import sqlite3
 import os
@@ -6,8 +6,31 @@ import csv
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import portrait
+from functools import wraps
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+
+# --------- AUTENTICACION --------- #
+def check_auth(username, password):
+    return username == os.getenv("USUARIO") and password == os.getenv("CLAVE")
+
+def authenticate():
+    return Response(
+        'Acceso restringido. Ingrese usuario y contraseña.\n', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Requerido"'}
+    )
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
 
 # --------- DB INIT --------- #
 def init_db():
@@ -31,7 +54,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 init_db()
 
 # --------- CONTADOR --------- #
@@ -47,6 +69,7 @@ def get_next_tracking(cp_dest):
 
 # --------- FLASK --------- #
 @app.route('/', methods=['GET', 'POST'])
+@requires_auth
 def index():
     if request.method == 'POST':
         modo = request.form.get('modo')
@@ -92,8 +115,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c = canvas.Canvas(archivo_salida, pagesize=portrait((283, 425)))
 
     if modo == '1':
-        barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.0)
-        barcode_width = 150
+        barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.0, humanReadable=False)
         barcode.drawOn(c, 66, 195)
 
     c.setFont("Helvetica-Bold", 10)
@@ -135,7 +157,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     if data['fragil']:
         c.setFont("Helvetica-Bold", 12)
         c.drawCentredString(140, 80, "⚠ FRÁGIL - MANIPULAR CON CUIDADO ⚠")
-        c.drawImage("static/fragil.png", 115, 40, width=100, height=40)
+        c.drawImage("static/fragil.png", 110, 50, width=100, height=40)
 
     if data['observaciones']:
         c.setFont("Helvetica", 8)
@@ -145,6 +167,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
 # --------- DASHBOARD --------- #
 @app.route('/historial')
+@requires_auth
 def historial():
     conn = sqlite3.connect('seguimiento.db')
     c = conn.cursor()
@@ -154,6 +177,7 @@ def historial():
     return render_template('historial.html', envios=envios)
 
 @app.route('/export-csv')
+@requires_auth
 def export_csv():
     conn = sqlite3.connect('seguimiento.db')
     c = conn.cursor()
@@ -179,4 +203,3 @@ def registrar_envio(data, numero_seguimiento):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
