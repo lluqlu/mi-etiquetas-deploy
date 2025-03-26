@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, send_file, redirect, url_for, Response, session
 import qrcode
-import sqlite3
+import json
 import os
 import csv
 from reportlab.pdfgen import canvas
@@ -37,50 +37,41 @@ def logout():
     session.pop('usuario', None)
     return redirect(url_for('login'))
 
-# --------- DB INIT --------- #
-def init_db():
-    conn = sqlite3.connect('seguimiento.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS contador (id INTEGER PRIMARY KEY, secuencia INTEGER)''')
-    c.execute('''INSERT OR IGNORE INTO contador (id, secuencia) VALUES (1, 0)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS envios (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    numero_seguimiento TEXT,
-                    remitente TEXT,
-                    dni_rem TEXT,
-                    celular_rem TEXT,
-                    destinatario TEXT,
-                    dni_dest TEXT,
-                    cp_dest TEXT,
-                    peso TEXT,
-                    fragil INTEGER,
-                    observaciones TEXT
-                )''')
-    conn.commit()
-    conn.close()
-
-init_db()
-
-# --------- CONTADOR --------- #
+# --------- CONTADOR JSON PERSISTENTE --------- #
 def get_next_tracking(cp_dest):
-    conn = sqlite3.connect('seguimiento.db')
-    c = conn.cursor()
-    c.execute('SELECT secuencia FROM contador WHERE id=1')
-    secuencia = c.fetchone()[0] + 1
-    c.execute('UPDATE contador SET secuencia = ? WHERE id=1', (secuencia,))
-    conn.commit()
-    conn.close()
-    return f"AR-{cp_dest}-{str(secuencia).zfill(2)}"
+    ruta = "static/contador.json"
+    if not os.path.exists(ruta):
+        with open(ruta, "w") as f:
+            json.dump({"secuencia": 0}, f)
+
+    with open(ruta, "r") as f:
+        datos = json.load(f)
+
+    datos["secuencia"] += 1
+
+    with open(ruta, "w") as f:
+        json.dump(datos, f)
+
+    return f"AR-{cp_dest}-{str(datos['secuencia']).zfill(2)}"
 
 # --------- REGISTRO --------- #
 def registrar_envio(data, numero_seguimiento):
-    conn = sqlite3.connect('seguimiento.db')
-    c = conn.cursor()
-    c.execute('''INSERT INTO envios (numero_seguimiento, remitente, dni_rem, celular_rem, destinatario, dni_dest, cp_dest, peso, fragil, observaciones)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-              (numero_seguimiento, data['remitente'], data['dni_rem'], data['celular_rem'], data['destinatario'], data['dni_dest'], data['cp_dest'], data['peso'], int(data['fragil']), data['observaciones']))
-    conn.commit()
-    conn.close()
+    with open("static/envios.csv", "a", newline="") as f:
+        writer = csv.writer(f)
+        if os.stat("static/envios.csv").st_size == 0:
+            writer.writerow(["Seguimiento", "Remitente", "DNI Rem", "Cel Rem", "Destinatario", "DNI Dest", "CP Dest", "Peso", "Frágil", "Observaciones"])
+        writer.writerow([
+            numero_seguimiento,
+            data['remitente'],
+            data['dni_rem'],
+            data['celular_rem'],
+            data['destinatario'],
+            data['dni_dest'],
+            data['cp_dest'],
+            data['peso'],
+            int(data['fragil']),
+            data['observaciones']
+        ])
 
 # --------- PDF --------- #
 def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
