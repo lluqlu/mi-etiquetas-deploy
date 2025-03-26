@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Historial de Envíos</title>
+    <title>Generador de Etiquetas</title>
     <link rel="stylesheet" href="/static/styles.css">
     <style>
-        .obligatorio::after {
+        label.required::after {
             content: " *";
             color: red;
         }
@@ -13,60 +13,59 @@
 </head>
 <body>
     <div class="container">
-        <h2>Historial de Envíos</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Seguimiento</th>
-                <th><span class="obligatorio">Remitente</span></th>
-                <th>DNI Rem</th>
-                <th>Cel Rem</th>
-                <th><span class="obligatorio">Dirección Rem</span></th>
-                <th><span class="obligatorio">CP Rem</span></th>
-                <th><span class="obligatorio">Ciudad Rem</span></th>
-                <th><span class="obligatorio">Prov Rem</span></th>
-                <th><span class="obligatorio">Destinatario</span></th>
-                <th>DNI Dest</th>
-                <th><span class="obligatorio">Cel Dest</span></th>
-                <th><span class="obligatorio">Dirección Dest</span></th>
-                <th><span class="obligatorio">CP Dest</span></th>
-                <th><span class="obligatorio">Ciudad Dest</span></th>
-                <th><span class="obligatorio">Prov Dest</span></th>
-                <th><span class="obligatorio">Peso</span></th>
-                <th>Frágil</th>
-                <th>Observaciones</th>
-            </tr>
-            {% for envio in envios %}
-            <tr>
-                <td>{{ envio['id'] }}</td>
-                <td>{{ envio['seguimiento'] }}</td>
-                <td>{{ envio['remitente'] }}</td>
-                <td>{{ envio['dni_rem'] }}</td>
-                <td>{{ envio['cel_rem'] }}</td>
-                <td>{{ envio['direccion_rem'] }}</td>
-                <td>{{ envio['cp_rem'] }}</td>
-                <td>{{ envio['ciudad_rem'] }}</td>
-                <td>{{ envio['prov_rem'] }}</td>
-                <td>{{ envio['destinatario'] }}</td>
-                <td>{{ envio['dni_dest'] }}</td>
-                <td>{{ envio['celular_dest'] }}</td>
-                <td>{{ envio['direccion_dest'] }}</td>
-                <td>{{ envio['cp_dest'] }}</td>
-                <td>{{ envio['ciudad_dest'] }}</td>
-                <td>{{ envio['prov_dest'] }}</td>
-                <td>{{ envio['peso'] }} KG</td>
-                <td>{{ 'Sí' if envio['fragil'] else 'No' }}</td>
-                <td>{{ envio['observaciones'] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <h2>Generador de Etiquetas</h2>
+        <form method="post">
+            <div class="form-section">
+                <h3 style="color: #00b6ad">Remitente</h3>
+                <input type="text" name="remitente" placeholder="Nombre y Apellido" required>
+                <input type="text" name="dni_rem" placeholder="DNI">
+                <input type="text" name="cel_rem" placeholder="Celular">
+                <input type="text" name="direccion_rem" placeholder="Dirección" required>
+                <input type="text" name="cp_rem" placeholder="Código Postal" required>
+                <input type="text" name="ciudad_rem" placeholder="Ciudad" required>
+                <input type="text" name="prov_rem" placeholder="Provincia" required>
+            </div>
 
-        <form action="/export-csv" method="get">
-            <button type="submit">Exportar CSV</button>
+            <div class="form-section">
+                <h3 style="color: #00b6ad">Destinatario</h3>
+                <input type="text" name="destinatario" placeholder="Nombre y Apellido" required>
+                <input type="text" name="dni_dest" placeholder="DNI">
+                <input type="text" name="celular_dest" placeholder="Celular" required>
+                <input type="text" name="direccion_dest" placeholder="Dirección" required>
+                <input type="text" name="cp_dest" placeholder="Código Postal" required>
+                <input type="text" name="ciudad_dest" placeholder="Ciudad" required>
+                <input type="text" name="prov_dest" placeholder="Provincia" required>
+            </div>
+
+            <div class="form-section">
+                <label for="modo"><strong>🧭 Modo de uso</strong></label>
+                <select name="modo" id="modo" required>
+                    <option value="1">🚚 Courier Propio</option>
+                    <option value="2">📦 Logística Externa</option>
+                    <option value="3">🧢 Envíos Thana</option>
+                </select>
+                <ul style="font-size: 12px; margin-top: 5px;">
+                    <li>🚚 Courier Propio: genera código de seguimiento y QR de llamada.</li>
+                    <li>📦 Logística Externa: deja espacio libre para código externo.</li>
+                    <li>🧢 Envíos Thana: genera código de Thana y QR con Instagram.</li>
+                </ul>
+            </div>
+
+            <input type="number" step="0.01" name="peso" placeholder="Peso del paquete (kg)" required>
+
+            <label for="fragil">¿Es frágil?</label>
+            <select name="fragil" id="fragil">
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+            </select>
+
+            <label for="observaciones">Observaciones (opcional, máx. 50 caracteres):</label>
+            <input type="text" name="observaciones" maxlength="50">
+
+            <button type="submit">Generar Etiqueta</button>
         </form>
-
-        <a href="/" class="volver">Volver al Generador</a>
     </div>
 </body>
 </html>
+
 
