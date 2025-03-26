@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for, Response, session
+from flask import Flask, render_template, request, send_file, redirect, url_for, Response, session, make_response
 import qrcode
 import json
 import os
@@ -188,7 +188,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.save()
 
-# --------- RUTA PRINCIPAL (sin login) --------- #
+# --------- RUTA PRINCIPAL (con persistencia y vista previa) --------- #
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -212,7 +212,16 @@ def index():
             'fragil': request.form.get('fragil') == 'si',
             'observaciones': request.form.get('observaciones')[:50] if request.form.get('observaciones') else ""
         }
-        generar_etiqueta_envio(datos, modo)
-        return send_file("etiqueta_envio.pdf", as_attachment=True)
 
-    return render_template('formulario.html')
+        session['datos'] = datos
+        session['modo'] = modo
+
+        generar_etiqueta_envio(datos, modo)
+        return redirect(url_for('preview'))
+
+    datos = session.get('datos', {})
+    return render_template('formulario.html', datos=datos)
+
+@app.route('/preview')
+def preview():
+    return send_file("etiqueta_envio.pdf")
