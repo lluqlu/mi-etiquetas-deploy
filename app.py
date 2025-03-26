@@ -3,6 +3,7 @@ import qrcode
 import json
 import os
 import csv
+from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import portrait
@@ -37,12 +38,13 @@ def logout():
     session.pop('usuario', None)
     return redirect(url_for('index'))
 
-# --------- CONSULTAS --------- #
-@app.route('/consultas', methods=['GET'])
+@app.route('/consultas', methods=['GET', 'POST'])
 @requires_auth
 def consultas():
-    codigo = request.args.get('codigo')
+    codigo = request.args.get('codigo') or request.form.get('codigo')
     resultado = None
+    eventos = []
+
     if codigo:
         try:
             with open("static/envios.csv", newline="") as f:
@@ -53,7 +55,27 @@ def consultas():
                         break
         except FileNotFoundError:
             pass
-    return render_template("consultas.html", resultado=resultado, codigo=codigo)
+
+        try:
+            with open("static/seguimiento.csv", newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['Seguimiento'] == codigo:
+                        eventos.append({"fecha": row['FechaHora'], "evento": row['Evento']})
+        except FileNotFoundError:
+            pass
+
+        if request.method == 'POST' and resultado:
+            nuevo_evento = request.form.get('evento')
+            fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open("static/seguimiento.csv", "a", newline="") as f:
+                writer = csv.writer(f)
+                if os.stat("static/seguimiento.csv").st_size == 0:
+                    writer.writerow(["Seguimiento", "FechaHora", "Evento"])
+                writer.writerow([codigo, fecha_actual, nuevo_evento])
+            eventos.append({"fecha": fecha_actual, "evento": nuevo_evento})
+
+    return render_template("consultas.html", resultado=resultado, codigo=codigo, eventos=eventos)
 
 # --------- CONTADORES --------- #
 def get_next_tracking(cp_dest):
@@ -99,7 +121,6 @@ def registrar_envio(data, numero_seguimiento):
             data['observaciones']
         ])
 
-# --------- HISTORIAL --------- #
 @app.route('/historial')
 @requires_auth
 def historial():
@@ -118,7 +139,6 @@ def historial():
 def export_csv():
     return send_file("static/envios.csv", as_attachment=True)
 
-# --------- GENERAR QR --------- #
 def generar_qr_llamada(data, modo, archivo_salida="static/qr.png"):
     if modo == '3':
         qr = qrcode.make("https://www.instagram.com/gorras.thana/")
@@ -126,7 +146,6 @@ def generar_qr_llamada(data, modo, archivo_salida="static/qr.png"):
         qr = qrcode.make(f"tel:{data['celular_dest']}")
     qr.save(archivo_salida)
 
-# --------- GENERAR ETIQUETA --------- #
 def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     generar_qr_llamada(data, modo)
     if modo == '1':
@@ -196,7 +215,6 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.save()
 
-# --------- FORMULARIO PRINCIPAL --------- #
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -231,3 +249,4 @@ def index():
 @app.route('/preview')
 def preview():
     return send_file("etiqueta_envio.pdf")
+
