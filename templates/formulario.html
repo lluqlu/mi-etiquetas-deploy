@@ -1,91 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Generador de Etiquetas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8">
+  <title>Generador de Etiquetas</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="container">
-        <h2>Generador de Etiquetas Para Envíos</h2>
+  <div class="container">
+    <h1>Generador de Etiquetas</h1>
+    <form method="POST">
+      <div class="columnas">
+        <div class="columna">
+          <h2>Remitente</h2>
+          <input type="text" name="remitente" placeholder="Nombre completo" required>
+          <input type="text" name="dni_rem" placeholder="DNI" required>
+          <input type="text" name="celular_rem" placeholder="Celular" required>
+          <input type="text" name="direccion_rem" placeholder="Dirección" required>
+          <input type="text" name="cp_rem" placeholder="Código Postal" required>
+          <input type="text" name="ciudad_rem" placeholder="Ciudad" required>
+          <input type="text" name="prov_rem" placeholder="Provincia" required>
+        </div>
 
-        <form method="POST">
+        <div class="columna">
+          <h2>Destinatario</h2>
+          <input type="text" name="destinatario" placeholder="Nombre completo" required>
+          <input type="text" name="dni_dest" placeholder="DNI" required>
+          <input type="text" name="celular_dest" placeholder="Celular" required>
+          <input type="text" name="direccion_dest" placeholder="Dirección" required>
+          <input type="text" name="cp_dest" placeholder="Código Postal" required>
+          <input type="text" name="ciudad_dest" placeholder="Ciudad" required>
+          <input type="text" name="prov_dest" placeholder="Provincia" required>
+        </div>
+      </div>
 
-            <label>Modo de uso:</label>
-            <select name="modo">
-                <option value="1">Courier Propio</option>
-                <option value="2">Logística Externa</option>
-                <option value="3">Envíos Thana</option>
+      <fieldset>
+        <legend>📦 Modo de uso</legend>
+        <select name="modo" required>
+          <option value="">Seleccionar...</option>
+          <option value="1">🚚 Courier Propio</option>
+          <option value="2">📤 Logística Externa</option>
+          <option value="3">🧢 Envíos Thana</option>
+        </select>
+        <small>
+          🚚 Courier Propio: genera código de seguimiento y QR de llamada.<br>
+          📤 Logística Externa: deja espacio libre para código externo.<br>
+          🧢 Envíos Thana: genera código de Thana y QR con Instagram.
+        </small>
+      </fieldset>
 
-            </select>
+      <label>Peso del paquete (kg):</label>
+      <input type="number" step="0.1" name="peso" required>
 
-            <div class="grid">
-                <!-- Columna Remitente -->
-                <div>
-                    <h3>Remitente</h3>
-                    <label>Nombre:</label>
-                    <input type="text" name="remitente">
+      <label>¿Es frágil?</label>
+      <select name="fragil">
+        <option value="no">No</option>
+        <option value="si">Sí</option>
+      </select>
 
-                    <label>DNI:</label>
-                    <input type="text" name="dni_rem">
+      <label>Observaciones (opcional, máx. 50 caracteres):</label>
+      <input type="text" name="observaciones" maxlength="50">
 
-                    <label>Celular:</label>
-                    <input type="text" name="celular_rem">
-
-                    <label>Dirección:</label>
-                    <input type="text" name="direccion_rem">
-
-                    <label>CP:</label>
-                    <input type="text" name="cp_rem">
-
-                    <label>Ciudad:</label>
-                    <input type="text" name="ciudad_rem">
-
-                    <label>Provincia:</label>
-                    <input type="text" name="prov_rem">
-                </div>
-
-                <!-- Columna Destinatario -->
-                <div>
-                    <h3>Destinatario</h3>
-                    <label>Nombre:</label>
-                    <input type="text" name="destinatario">
-
-                    <label>DNI:</label>
-                    <input type="text" name="dni_dest">
-
-                    <label>Celular:</label>
-                    <input type="text" name="celular_dest">
-
-                    <label>Dirección:</label>
-                    <input type="text" name="direccion_dest">
-
-                    <label>CP:</label>
-                    <input type="text" name="cp_dest">
-
-                    <label>Ciudad:</label>
-                    <input type="text" name="ciudad_dest">
-
-                    <label>Provincia:</label>
-                    <input type="text" name="prov_dest">
-                </div>
-            </div>
-
-            <h3>Datos adicionales</h3>
-            <label>Peso (kg):</label>
-            <input type="text" name="peso">
-
-            <label>¿Es frágil?</label>
-            <select name="fragil">
-                <option value="no">No</option>
-                <option value="si">Sí</option>
-            </select>
-
-            <label>Observaciones (máx 50 caracteres):</label>
-            <input type="text" name="observaciones" maxlength="50">
-
-            <button type="submit">Generar Etiqueta</button>
-        </form>
-    </div>
+      <button type="submit">Generar Etiqueta</button>
+    </form>
+  </div>
 </body>
 </html>
 

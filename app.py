@@ -68,7 +68,7 @@ def get_next_tracking_thana(cp_dest):
     with open(ruta, "w") as f:
         json.dump(datos, f)
 
-    return f"THN-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+    return f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
 
 # --------- REGISTRO --------- #
 def registrar_envio(data, numero_seguimiento):
@@ -108,14 +108,17 @@ def historial():
 def export_csv():
     return send_file("static/envios.csv", as_attachment=True)
 
-# --------- PDF --------- #
-def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
-    qr = qrcode.make(f"tel:{celular_dest}")
+# --------- QR --------- #
+def generar_qr_llamada(data, modo, archivo_salida="static/qr.png"):
+    if modo == '3':
+        qr = qrcode.make("https://www.instagram.com/gorras.thana/")
+    else:
+        qr = qrcode.make(f"tel:{data['celular_dest']}")
     qr.save(archivo_salida)
 
 # --------- ETIQUETA --------- #
 def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
-    generar_qr_llamada(data['celular_dest'])
+    generar_qr_llamada(data, modo)
 
     if modo == '1':
         numero_seguimiento = get_next_tracking(data['cp_dest'])
@@ -213,4 +216,3 @@ def index():
         return send_file("etiqueta_envio.pdf", as_attachment=True)
 
     return render_template('formulario.html')
-
