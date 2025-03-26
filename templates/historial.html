@@ -4,56 +4,73 @@
     <meta charset="UTF-8">
     <title>Historial de Envíos</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .tabla-scroll {
+            overflow-x: auto;
+            width: 100%;
+        }
+        table {
+            min-width: 1000px;
+            border-collapse: collapse;
+        }
+        th, td {
+            white-space: nowrap;
+            padding: 5px 10px;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Historial de Envíos</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Seguimiento</th>
-                <th>Remitente</th>
-                <th>DNI Rem</th>
-                <th>Cel Rem</th>
-                <th>Dirección Rem</th>
-                <th>CP Rem</th>
-                <th>Ciudad Rem</th>
-                <th>Prov Rem</th>
-                <th>Destinatario</th>
-                <th>DNI Dest</th>
-                <th>Cel Dest</th>
-                <th>Dirección Dest</th>
-                <th>CP Dest</th>
-                <th>Ciudad Dest</th>
-                <th>Prov Dest</th>
-                <th>Peso</th>
-                <th>Frágil</th>
-                <th>Observaciones</th>
-            </tr>
-            {% for envio in envios %}
-            <tr>
-                <td>{{ envio['id'] }}</td>
-                <td>{{ envio['seguimiento'] }}</td>
-                <td>{{ envio['remitente'] }}</td>
-                <td>{{ envio['dni_rem'] }}</td>
-                <td>{{ envio['cel_rem'] }}</td>
-                <td>{{ envio['direccion_rem'] }}</td>
-                <td>{{ envio['cp_rem'] }}</td>
-                <td>{{ envio['ciudad_rem'] }}</td>
-                <td>{{ envio['prov_rem'] }}</td>
-                <td>{{ envio['destinatario'] }}</td>
-                <td>{{ envio['dni_dest'] }}</td>
-                <td>{{ envio['celular_dest'] }}</td>
-                <td>{{ envio['direccion_dest'] }}</td>
-                <td>{{ envio['cp_dest'] }}</td>
-                <td>{{ envio['ciudad_dest'] }}</td>
-                <td>{{ envio['prov_dest'] }}</td>
-                <td>{{ envio['peso'] }} KG</td>
-                <td>{{ 'Sí' if envio['fragil'] else 'No' }}</td>
-                <td>{{ envio['observaciones'] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <div class="tabla-scroll">
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Seguimiento</th>
+                    <th>Remitente</th>
+                    <th>DNI Rem</th>
+                    <th>Cel Rem</th>
+                    <th>Dirección Rem</th>
+                    <th>CP Rem</th>
+                    <th>Ciudad Rem</th>
+                    <th>Prov Rem</th>
+                    <th>Destinatario</th>
+                    <th>DNI Dest</th>
+                    <th>Cel Dest</th>
+                    <th>Dirección Dest</th>
+                    <th>CP Dest</th>
+                    <th>Ciudad Dest</th>
+                    <th>Prov Dest</th>
+                    <th>Peso</th>
+                    <th>Frágil</th>
+                    <th>Observaciones</th>
+                </tr>
+                {% for envio in envios %}
+                <tr>
+                    <td>{{ envio['id'] }}</td>
+                    <td>{{ envio['seguimiento'] }}</td>
+                    <td>{{ envio['remitente'] }}</td>
+                    <td>{{ envio['dni_rem'] }}</td>
+                    <td>{{ envio['cel_rem'] }}</td>
+                    <td>{{ envio['direccion_rem'] }}</td>
+                    <td>{{ envio['cp_rem'] }}</td>
+                    <td>{{ envio['ciudad_rem'] }}</td>
+                    <td>{{ envio['prov_rem'] }}</td>
+                    <td>{{ envio['destinatario'] }}</td>
+                    <td>{{ envio['dni_dest'] }}</td>
+                    <td>{{ envio['celular_dest'] }}</td>
+                    <td>{{ envio['direccion_dest'] }}</td>
+                    <td>{{ envio['cp_dest'] }}</td>
+                    <td>{{ envio['ciudad_dest'] }}</td>
+                    <td>{{ envio['prov_dest'] }}</td>
+                    <td>{{ envio['peso'] }} KG</td>
+                    <td>{{ 'Sí' if envio['fragil'] else 'No' }}</td>
+                    <td>{{ envio['observaciones'] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
 
         <form action="/export-csv" method="get">
             <button type="submit">Exportar CSV</button>

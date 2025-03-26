@@ -6,77 +6,71 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="container">
-        <h2>Consultas de Envíos</h2>
-        <form method="post">
-            <input type="text" name="codigo" placeholder="Buscar código de seguimiento" value="{{ codigo or '' }}" required>
-            <button type="submit">Buscar</button>
-        </form>
+<div class="container">
+    <h2>Consultas de Envíos</h2>
 
-        <button onclick="startScanner()" class="camera-btn">📷 Escanear con Cámara</button>
-        <div id="reader" style="margin-top: 10px;"></div>
+    <form method="post" action="/consultas">
+        <label for="codigo">Buscar código de seguimiento:</label>
+        <input type="text" name="codigo" id="codigo" placeholder="Ej: AR-1900-01" required>
+        <button type="submit">Buscar</button>
+    </form>
 
-        {% if resultado %}
-            <div class="resultado">
-                <h3>Resultado:</h3>
-                <p><strong>Código:</strong> {{ resultado['seguimiento'] }}</p>
-                <p><strong>Remitente:</strong> {{ resultado['remitente'] }}</p>
-                <p><strong>DNI Remitente:</strong> {{ resultado['dni_rem'] }}</p>
-                <p><strong>Celular Remitente:</strong> {{ resultado['cel_rem'] }}</p>
-                <p><strong>Dirección Remitente:</strong> {{ resultado['direccion_rem'] }}</p>
-                <p><strong>CP:</strong> {{ resultado['cp_rem'] }}</p>
-                <p><strong>Ciudad:</strong> {{ resultado['ciudad_rem'] }}</p>
-                <p><strong>Provincia:</strong> {{ resultado['prov_rem'] }}</p>
-                <hr>
-                <p><strong>Destinatario:</strong> {{ resultado['destinatario'] }}</p>
-                <p><strong>DNI Destinatario:</strong> {{ resultado['dni_dest'] }}</p>
-                <p><strong>Celular Destinatario:</strong> {{ resultado['celular_dest'] }}</p>
-                <p><strong>Dirección Destinatario:</strong> {{ resultado['direccion_dest'] }}</p>
-                <p><strong>CP:</strong> {{ resultado['cp_dest'] }}</p>
-                <p><strong>Ciudad:</strong> {{ resultado['ciudad_dest'] }}</p>
-                <p><strong>Provincia:</strong> {{ resultado['prov_dest'] }}</p>
-                <p><strong>Peso:</strong> {{ resultado['peso'] }} kg</p>
-                <p><strong>Frágil:</strong> {{ 'Sí' if resultado['fragil'] else 'No' }}</p>
-                <p><strong>Observaciones:</strong> {{ resultado['observaciones'] }}</p>
+    <button onclick="iniciarEscaneo()">📷 Escanear con Cámara</button>
+    <video id="preview" style="width: 100%; max-width: 300px; margin-top: 10px;"></video>
 
-                <div class="seguimiento-box">
-                    <p><strong class="seguimiento-titulo">Seguimiento:</strong></p>
-                    <ul>
-                        {% for evento in eventos %}
-                            <li>{{ evento['fechahora'] }} - {{ evento['evento'] }}</li>
-                        {% endfor %}
-                    </ul>
-                    <form method="post">
-                        <input type="hidden" name="codigo" value="{{ resultado['seguimiento'] }}">
-                        <input type="text" name="evento" placeholder="Nuevo evento" required>
-                        <button type="submit">Agregar evento</button>
-                    </form>
-                </div>
-            </div>
-        {% endif %}
+    {% if resultado %}
+    <div class="resultado">
+        <h3>Resultado:</h3>
+        <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
+        <p><strong>Remitente:</strong> {{ resultado['remitente'] }}</p>
+        <p><strong>DNI Remitente:</strong> {{ resultado['dni_rem'] }}</p>
+        <p><strong>Celular Remitente:</strong> {{ resultado['cel_rem'] }}</p>
+        <p><strong>Destinatario:</strong> {{ resultado['destinatario'] }}</p>
+        <p><strong>DNI Destinatario:</strong> {{ resultado['dni_dest'] }}</p>
+        <p><strong>CP Destino:</strong> {{ resultado['cp_dest'] }}</p>
+        <p><strong>Peso:</strong> {{ resultado['peso'] }} kg</p>
+        <p><strong>Frágil:</strong> {{ resultado['fragil'] }}</p>
+        <p><strong>Observaciones:</strong> {{ resultado['observaciones'] }}</p>
+
+        <div class="seguimiento-box">
+            <p><strong>Seguimiento:</strong></p>
+            <ul>
+                {% for evento in eventos %}
+                    <li>{{ evento }}</li>
+                {% endfor %}
+            </ul>
+
+            <form action="/agregar_evento" method="post">
+                <input type="hidden" name="codigo" value="{{ codigo }}">
+                <label for="evento">Nuevo evento:</label>
+                <input type="text" name="evento" id="evento" required>
+                <button type="submit">Agregar evento</button>
+            </form>
+        </div>
     </div>
+    {% endif %}
+</div>
 
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script>
-        function startScanner() {
-            const html5QrCode = new Html5Qrcode("reader");
-            Html5Qrcode.getCameras().then(devices => {
-                if (devices && devices.length) {
-                    html5QrCode.start(
-                        { facingMode: "environment" },
-                        { fps: 10, qrbox: 250 },
-                        qrCodeMessage => {
-                            document.querySelector("input[name='codigo']").value = qrCodeMessage;
-                            html5QrCode.stop().then(() => {
-                                document.querySelector("form").submit();
-                            });
-                        },
-                        errorMessage => {}
-                    ).catch(err => console.error(err));
-                }
-            }).catch(err => console.error(err));
-        }
-    </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js"></script>
+<script>
+    function iniciarEscaneo() {
+        let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+        scanner.addListener('scan', function (content) {
+            document.getElementById('codigo').value = content;
+            document.forms[0].submit();
+        });
+        Instascan.Camera.getCameras().then(function (cameras) {
+            if (cameras.length > 0) {
+                scanner.start(cameras[0]);
+            } else {
+                alert('No se encontró cámara.');
+            }
+        }).catch(function (e) {
+            console.error(e);
+            alert('Error al acceder a la cámara');
+        });
+    }
+</script>
 </body>
 </html>
 
