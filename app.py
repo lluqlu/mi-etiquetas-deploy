@@ -54,6 +54,22 @@ def get_next_tracking(cp_dest):
 
     return f"AR-{cp_dest}-{str(datos['secuencia']).zfill(2)}"
 
+def get_next_tracking_thana(cp_dest):
+    ruta = "static/contador_thana.json"
+    if not os.path.exists(ruta):
+        with open(ruta, "w") as f:
+            json.dump({"secuencia": 0}, f)
+
+    with open(ruta, "r") as f:
+        datos = json.load(f)
+
+    datos["secuencia"] += 1
+
+    with open(ruta, "w") as f:
+        json.dump(datos, f)
+
+    return f"THN-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+
 # --------- REGISTRO --------- #
 def registrar_envio(data, numero_seguimiento):
     with open("static/envios.csv", "a", newline="") as f:
@@ -101,8 +117,10 @@ def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
 def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     generar_qr_llamada(data['celular_dest'])
 
-    if modo == '1' or modo == '3':
+    if modo == '1':
         numero_seguimiento = get_next_tracking(data['cp_dest'])
+    elif modo == '3':
+        numero_seguimiento = get_next_tracking_thana(data['cp_dest'])
     else:
         numero_seguimiento = "-"
 
@@ -110,7 +128,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c = canvas.Canvas(archivo_salida, pagesize=portrait((283, 425)))
 
-    if modo == '1' or modo == '3':
+    if modo in ['1', '3']:
         c.setFont("Helvetica-Bold", 8)
         c.drawString(180, 415, f"TRACK: {numero_seguimiento}")
 
@@ -118,7 +136,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.drawString(200, 405, f"PESO: {data['peso']}KG")
 
     if modo == '3':
-        c.drawImage("static/logo.png", 100, 385, width=80, height=30)
+        c.drawImage("static/logo.png", 100, 385, width=70, height=85)
 
     c.drawImage("static/qr.png", 20, 340, width=80, height=80)
 
@@ -136,10 +154,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.line(15, 250, 270, 250)
 
-    if modo == '1':
-        barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.0, humanReadable=False)
-        barcode.drawOn(c, 66, 195)
-    elif modo == '3':
+    if modo in ['1', '3']:
         barcode = code128.Code128(numero_seguimiento, barHeight=50, barWidth=1.0, humanReadable=False)
         barcode.drawOn(c, 66, 195)
 
