@@ -18,6 +18,17 @@
       margin-top: 20px;
       font-size: 16px;
       font-weight: bold;
+      color: #333;
+    }
+    .datos-envio {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    .datos-envio p {
+      margin: 5px 0;
     }
   </style>
 </head>
@@ -26,7 +37,7 @@
   <h1>Consultas de Envíos</h1>
   <form method="GET" action="/consultas">
     <label for="codigo">Buscar código de seguimiento:</label>
-    <input type="text" name="codigo" id="codigo" placeholder="Ej: AR-1900-01">
+    <input type="text" name="codigo" id="codigo" placeholder="Ej: AR-1900-01" value="{{ codigo or '' }}">
     <button type="submit">Buscar</button>
   </form>
 
@@ -35,6 +46,24 @@
   <button onclick="iniciarEscaneo()">📷 Escanear con Cámara</button>
   <div id="scanner"></div>
   <div id="resultado"></div>
+
+  {% if resultado %}
+    <div class="datos-envio">
+      <h3>Resultado:</h3>
+      <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
+      <p><strong>Remitente:</strong> {{ resultado['Remitente'] }}</p>
+      <p><strong>DNI Remitente:</strong> {{ resultado['DNI Rem'] }}</p>
+      <p><strong>Celular Remitente:</strong> {{ resultado['Cel Rem'] }}</p>
+      <p><strong>Destinatario:</strong> {{ resultado['Destinatario'] }}</p>
+      <p><strong>DNI Destinatario:</strong> {{ resultado['DNI Dest'] }}</p>
+      <p><strong>CP Destino:</strong> {{ resultado['CP Dest'] }}</p>
+      <p><strong>Peso:</strong> {{ resultado['Peso'] }} kg</p>
+      <p><strong>Frágil:</strong> {{ 'Sí' if resultado['Frágil'] == '1' else 'No' }}</p>
+      <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
+    </div>
+  {% elif codigo %}
+    <p style="color:red;">No se encontraron resultados para <strong>{{ codigo }}</strong>.</p>
+  {% endif %}
 </div>
 
 <script>

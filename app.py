@@ -37,21 +37,35 @@ def logout():
     session.pop('usuario', None)
     return redirect(url_for('index'))
 
-# --------- CONTADOR JSON PERSISTENTE --------- #
+# --------- CONSULTAS --------- #
+@app.route('/consultas', methods=['GET'])
+@requires_auth
+def consultas():
+    codigo = request.args.get('codigo')
+    resultado = None
+    if codigo:
+        try:
+            with open("static/envios.csv", newline="") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['Seguimiento'] == codigo:
+                        resultado = row
+                        break
+        except FileNotFoundError:
+            pass
+    return render_template("consultas.html", resultado=resultado, codigo=codigo)
+
+# --------- CONTADORES --------- #
 def get_next_tracking(cp_dest):
     ruta = "static/contador.json"
     if not os.path.exists(ruta):
         with open(ruta, "w") as f:
             json.dump({"secuencia": 0}, f)
-
     with open(ruta, "r") as f:
         datos = json.load(f)
-
     datos["secuencia"] += 1
-
     with open(ruta, "w") as f:
         json.dump(datos, f)
-
     return f"AR-{cp_dest}-{str(datos['secuencia']).zfill(2)}"
 
 def get_next_tracking_thana(cp_dest):
@@ -59,15 +73,11 @@ def get_next_tracking_thana(cp_dest):
     if not os.path.exists(ruta):
         with open(ruta, "w") as f:
             json.dump({"secuencia": 0}, f)
-
     with open(ruta, "r") as f:
         datos = json.load(f)
-
     datos["secuencia"] += 1
-
     with open(ruta, "w") as f:
         json.dump(datos, f)
-
     return f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
 
 # --------- REGISTRO --------- #
@@ -108,7 +118,7 @@ def historial():
 def export_csv():
     return send_file("static/envios.csv", as_attachment=True)
 
-# --------- QR --------- #
+# --------- GENERAR QR --------- #
 def generar_qr_llamada(data, modo, archivo_salida="static/qr.png"):
     if modo == '3':
         qr = qrcode.make("https://www.instagram.com/gorras.thana/")
@@ -116,17 +126,15 @@ def generar_qr_llamada(data, modo, archivo_salida="static/qr.png"):
         qr = qrcode.make(f"tel:{data['celular_dest']}")
     qr.save(archivo_salida)
 
-# --------- ETIQUETA --------- #
+# --------- GENERAR ETIQUETA --------- #
 def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     generar_qr_llamada(data, modo)
-
     if modo == '1':
         numero_seguimiento = get_next_tracking(data['cp_dest'])
     elif modo == '3':
         numero_seguimiento = get_next_tracking_thana(data['cp_dest'])
     else:
         numero_seguimiento = "-"
-
     registrar_envio(data, numero_seguimiento)
 
     c = canvas.Canvas(archivo_salida, pagesize=portrait((283, 425)))
@@ -188,7 +196,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.save()
 
-# --------- RUTA PRINCIPAL (con persistencia y vista previa) --------- #
+# --------- FORMULARIO PRINCIPAL --------- #
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -212,10 +220,8 @@ def index():
             'fragil': request.form.get('fragil') == 'si',
             'observaciones': request.form.get('observaciones')[:50] if request.form.get('observaciones') else ""
         }
-
         session['datos'] = datos
         session['modo'] = modo
-
         generar_etiqueta_envio(datos, modo)
         return redirect(url_for('preview'))
 
