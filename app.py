@@ -136,7 +136,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     c.drawString(200, 405, f"PESO: {data['peso']}KG")
 
     if modo == '3':
-        c.drawImage("static/logo.png", 100, 385, width=70, height=85)
+        c.drawImage("static/logo.png", 100, 330, width=40, height=65)
 
     c.drawImage("static/qr.png", 20, 340, width=80, height=80)
 
