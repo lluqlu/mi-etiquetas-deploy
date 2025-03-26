@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultas de Envíos</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <style>
+    #scanner {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      border: 2px dashed #2cc5b5;
+      padding: 10px;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Consultas de Envíos</h1>
+  <form method="GET" action="/consultas">
+    <label for="codigo">Buscar código de seguimiento:</label>
+    <input type="text" name="codigo" id="codigo" placeholder="Ej: AR-1900-01">
+    <button type="submit">Buscar</button>
+  </form>
+
+  <hr>
+
+  <button onclick="iniciarEscaneo()">📷 Escanear con Cámara</button>
+  <div id="scanner"></div>
+  <div id="resultado"></div>
+</div>
+
+<script>
+function iniciarEscaneo() {
+  Quagga.init({
+    inputStream: {
+      type: "LiveStream",
+      constraints: {
+        facingMode: "environment"
+      },
+      target: document.querySelector('#scanner')
+    },
+    decoder: {
+      readers: ["code_128_reader"]
+    }
+  }, function(err) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    Quagga.start();
+  });
+
+  Quagga.onDetected(function(result) {
+    const codigo = result.codeResult.code;
+    document.getElementById("resultado").innerText = "Código detectado: " + codigo;
+    window.location.href = "/consultas?codigo=" + codigo;
+    Quagga.stop();
+  });
+}
+</script>
+</body>
+</html>
+
