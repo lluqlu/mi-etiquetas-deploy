@@ -35,7 +35,7 @@ def requires_auth(f):
 @app.route('/logout')
 def logout():
     session.pop('usuario', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 # --------- CONTADOR JSON PERSISTENTE --------- #
 def get_next_tracking(cp_dest):
@@ -73,11 +73,31 @@ def registrar_envio(data, numero_seguimiento):
             data['observaciones']
         ])
 
+# --------- HISTORIAL --------- #
+@app.route('/historial')
+@requires_auth
+def historial():
+    envios = []
+    try:
+        with open("static/envios.csv", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                envios.append(row)
+    except FileNotFoundError:
+        pass
+    return render_template("historial.html", envios=envios)
+
+@app.route('/export-csv')
+@requires_auth
+def export_csv():
+    return send_file("static/envios.csv", as_attachment=True)
+
 # --------- PDF --------- #
 def generar_qr_llamada(celular_dest, archivo_salida="static/qr.png"):
     qr = qrcode.make(f"tel:{celular_dest}")
     qr.save(archivo_salida)
 
+# --------- ETIQUETA --------- #
 def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     generar_qr_llamada(data['celular_dest'])
 
@@ -136,11 +156,11 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
     if data['fragil']:
         c.setFont("Helvetica-Bold", 12)
         c.drawCentredString(140, 85, "■ FRÁGIL - MANIPULAR CON CUIDADO ■")
-        c.drawImage("static/fragil.png", 110, 50, width=100, height=40)
+        c.drawImage("static/fragil.png", 110, 30, width=100, height=40)
 
     if data['observaciones']:
         c.setFont("Helvetica", 8)
-        c.drawString(20, 30, f"OBS: {data['observaciones']}")
+        c.drawString(20, 25, f"OBS: {data['observaciones']}")
 
     c.save()
 
