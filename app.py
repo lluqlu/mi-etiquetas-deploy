@@ -246,6 +246,38 @@ def get_next_tracking_thana(cp_dest):
     with open(ruta, "w") as f:
         json.dump(datos, f)
     return f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+@app.route('/seguimiento')
+def seguimiento():
+    codigo = request.args.get('codigo')
+    resultado = None
+    eventos = []
+
+    if codigo:
+        conn = conectar_bd()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM envios WHERE seguimiento = ?", (codigo,))
+        resultado_raw = cursor.fetchone()
+
+        if resultado_raw:
+            resultado = {
+                'Seguimiento': resultado_raw['seguimiento'],
+                'CP Remitente': resultado_raw['cp_rem'],
+                'Ciudad Remitente': resultado_raw['ciudad_rem'],
+                'Provincia Remitente': resultado_raw['prov_rem'],
+                'CP Destino': resultado_raw['cp_dest'],
+                'Ciudad Destinatario': resultado_raw['ciudad_dest'],
+                'Provincia Destinatario': resultado_raw['prov_dest']
+            }
+
+            cursor.execute("SELECT fechahora, evento FROM seguimiento WHERE seguimiento = ? ORDER BY id", (codigo,))
+            eventos = cursor.fetchall()
+
+        conn.close()
+
+    return render_template("consultas_cliente.html", resultado=resultado, codigo=codigo, eventos=eventos)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():

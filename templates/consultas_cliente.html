@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimiento de Envío</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <style>
+    #scanner {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      border: 2px dashed #2cc5b5;
+      padding: 10px;
+    }
+    .datos-envio, .eventos {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    .eventos {
+      border-color: #2cc5b5;
+      background-color: #e6f9f8;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Seguimiento de Envío</h1>
+
+  <form method="GET" action="/seguimiento">
+    <label for="codigo">Buscar código de seguimiento:</label>
+    <input type="text" name="codigo" id="codigo" placeholder="Ej: AR-1900-01" value="{{ codigo or '' }}">
+    <button type="submit">Buscar</button>
+  </form>
+
+  <hr>
+
+  <button onclick="iniciarEscaneo()">📷 Escanear con Cámara</button>
+  <div id="scanner"></div>
+  <div id="resultado"></div>
+
+  {% if resultado %}
+    <div class="datos-envio">
+      <h3>Información del Envío</h3>
+      <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
+
+      <p><strong>Desde:</strong></p>
+      <p>CP: {{ resultado['CP Remitente'] }}</p>
+      <p>Ciudad: {{ resultado['Ciudad Remitente'] }}</p>
+      <p>Provincia: {{ resultado['Provincia Remitente'] }}</p>
+
+      <p><strong>Hasta:</strong></p>
+      <p>CP: {{ resultado['CP Destino'] }}</p>
+      <p>Ciudad: {{ resultado['Ciudad Destinatario'] }}</p>
+      <p>Provincia: {{ resultado['Provincia Destinatario'] }}</p>
+    </div>
+
+    <div class="eventos">
+      <h4>Seguimiento:</h4>
+      {% if eventos %}
+        <ul>
+          {% for ev in eventos %}
+            <li>{{ ev.fechahora }} - {{ ev.evento }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No hay eventos registrados aún.</p>
+      {% endif %}
+    </div>
+  {% elif codigo %}
+    <p style="color:red;">No se encontró información para el código <strong>{{ codigo }}</strong>.</p>
+  {% endif %}
+</div>
+
+<script>
+function iniciarEscaneo() {
+  Quagga.init({
+    inputStream: {
+      type: "LiveStream",
+      constraints: {
+        facingMode: "environment"
+      },
+      target: document.querySelector('#scanner')
+    },
+    decoder: {
+      readers: ["code_128_reader"]
+    }
+  }, function(err) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    Quagga.start();
+  });
+
+  Quagga.onDetected(function(result) {
+    const codigo = result.codeResult.code;
+    document.getElementById("resultado").innerText = "Código detectado: " + codigo;
+    window.location.href = "/seguimiento?codigo=" + codigo;
+    Quagga.stop();
+  });
+}
+</script>
+</body>
+</html>
+
