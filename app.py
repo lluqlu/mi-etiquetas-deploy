@@ -47,29 +47,34 @@ def consultas():
     codigo = request.args.get('codigo') or request.form.get('codigo')
     resultado = None
     eventos = []
+    mensaje = None
 
     if codigo:
         conn = conectar_bd()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM envios WHERE seguimiento = ?", (codigo,))
+        cursor.execute("SELECT * FROM envios WHERE numero_seguimiento = ?", (codigo,))
         resultado = cursor.fetchone()
 
-        cursor.execute("SELECT fechahora, evento FROM seguimiento WHERE seguimiento = ? ORDER BY id", (codigo,))
-        eventos = cursor.fetchall()
+        if resultado:
+            cursor.execute("SELECT fechahora, evento FROM seguimiento WHERE seguimiento = ? ORDER BY id", (codigo,))
+            eventos = cursor.fetchall()
 
-        if request.method == 'POST' and resultado:
-            nuevo_evento = request.form.get('evento')
-            fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            cursor.execute("INSERT INTO seguimiento (seguimiento, fechahora, evento) VALUES (?, ?, ?)",
-                           (codigo, fecha_actual, nuevo_evento))
-            conn.commit()
-            eventos.append({"fechahora": fecha_actual, "evento": nuevo_evento})
+            if request.method == 'POST':
+                nuevo_evento = request.form.get('evento')
+                if nuevo_evento:
+                    fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute("INSERT INTO seguimiento (seguimiento, fechahora, evento) VALUES (?, ?, ?)",
+                                   (codigo, fecha_actual, nuevo_evento))
+                    conn.commit()
+                    eventos.append({"fechahora": fecha_actual, "evento": nuevo_evento})
+        else:
+            mensaje = "No se encontró ningún envío con ese código."
 
         conn.close()
 
-    return render_template("consultas.html", resultado=resultado, codigo=codigo, eventos=eventos)
+    return render_template("consultas.html", resultado=resultado, codigo=codigo, eventos=eventos, mensaje=mensaje)
 
 @app.route('/historial')
 @requires_auth

@@ -2,6 +2,7 @@
 {% block content %}
 <div class="contenedor">
     <h2 class="titulo">Consultas de Envíos</h2>
+
     <form id="formulario-busqueda" method="POST" action="/consultas">
         <label for="codigo">Buscar código de seguimiento:</label>
         <input type="text" id="codigo" name="codigo" placeholder="Ej: AR-1900-01">
@@ -12,6 +13,14 @@
         <i class="fas fa-camera"></i> Escanear con Cámara
     </button>
     <div id="lector-camara" style="width: 300px; margin-top: 10px;"></div>
+
+    <div id="spinner">
+        <div class="loader"></div>
+    </div>
+
+    {% if mensaje %}
+        <p style="color: red;">{{ mensaje }}</p>
+    {% endif %}
 
     {% if resultado %}
     <div class="resultado">
@@ -34,7 +43,7 @@
                 <li>{{ evento['fechahora'] }} - {{ evento['evento'] }}</li>
                 {% endfor %}
             </ul>
-            <form method="POST" action="/agregar_evento">
+            <form method="POST" action="/consultas">
                 <input type="hidden" name="codigo" value="{{ resultado['Seguimiento'] }}">
                 <label for="evento">Nuevo evento:</label>
                 <input type="text" name="evento" id="evento" placeholder="Ej: En viaje" required>
@@ -45,6 +54,30 @@
     {% endif %}
 </div>
 
+<!-- Estilos para el spinner -->
+<style>
+  #spinner {
+    display: none;
+    margin-top: 10px;
+  }
+
+  .loader {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 0.8s linear infinite;
+    margin: auto;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+<!-- Script del escáner + spinner -->
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
   function iniciarEscaneo() {
@@ -72,6 +105,10 @@
       console.error("Error al iniciar escáner:", err);
     });
   }
+
+  document.getElementById("formulario-busqueda").addEventListener("submit", function () {
+    document.getElementById("spinner").style.display = "block";
+  });
 </script>
 {% endblock %}
 
