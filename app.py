@@ -54,10 +54,26 @@ def consultas():
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM envios WHERE numero_seguimiento = ?", (codigo,))
-        resultado = cursor.fetchone()
+        cursor.execute("SELECT * FROM envios WHERE seguimiento = ?", (codigo,))
+        resultado_raw = cursor.fetchone()
 
-        if resultado:
+        if resultado_raw:
+            # Mapeo de nombres amigables para el HTML
+            resultado = {
+                'Seguimiento': resultado_raw['seguimiento'] or "",
+                'Remitente': resultado_raw['remitente'] or "",
+                'DNI Remitente': resultado_raw['dni_rem'] or "",
+                'Celular Remitente': resultado_raw['cel_rem'] or "",
+                'Celular Destinatario': resultado_raw['celular_dest'] or '',
+                'Destinatario': resultado_raw['destinatario'] or "",
+                'DNI Destinatario': resultado_raw['dni_dest'] or "",
+                'CP Destino': resultado_raw['cp_dest'] or "",
+                'Peso': resultado_raw['peso'] or "",
+                'Frágil': bool(resultado_raw['fragil']),
+                'Observaciones': resultado_raw['observaciones'] or "",
+                
+            }
+
             cursor.execute("SELECT fechahora, evento FROM seguimiento WHERE seguimiento = ? ORDER BY id", (codigo,))
             eventos = cursor.fetchall()
 
@@ -76,6 +92,8 @@ def consultas():
 
     return render_template("consultas.html", resultado=resultado, codigo=codigo, eventos=eventos, mensaje=mensaje)
 
+
+
 @app.route('/historial')
 @requires_auth
 def historial():
@@ -93,12 +111,17 @@ def export_csv():
     return send_file("static/envios.csv", as_attachment=True)
 
 def registrar_envio(data, numero_seguimiento):
-    conn = conectar_bd()
+    conn = sqlite3.connect("datos.db")
     cursor = conn.cursor()
+
     cursor.execute("""
-        INSERT INTO envios (seguimiento, remitente, dni_rem, cel_rem, destinatario, dni_dest,
-                            cp_dest, peso, fragil, observaciones)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO envios (
+            seguimiento, remitente, dni_rem, cel_rem,
+            destinatario, dni_dest, cp_dest, peso, fragil, observaciones,
+            direccion_rem, cp_rem, ciudad_rem, prov_rem,
+            direccion_dest, ciudad_dest, prov_dest, celular_dest
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         numero_seguimiento,
         data['remitente'],
@@ -109,10 +132,20 @@ def registrar_envio(data, numero_seguimiento):
         data['cp_dest'],
         data['peso'],
         int(data['fragil']),
-        data['observaciones']
+        data['observaciones'],
+        data['direccion_rem'],
+        data['cp_rem'],
+        data['ciudad_rem'],
+        data['prov_rem'],
+        data['direccion_dest'],
+        data['ciudad_dest'],
+        data['prov_dest'],
+        data['celular_dest']
     ))
+
     conn.commit()
     conn.close()
+
 
 def generar_qr_llamada(data, modo, archivo_salida="static/qr.png"):
     if modo == '3':

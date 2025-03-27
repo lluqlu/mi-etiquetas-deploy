@@ -28,12 +28,12 @@
         <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
         <p><strong>Remitente:</strong> {{ resultado['Remitente'] }}</p>
         <p><strong>DNI Remitente:</strong> {{ resultado['DNI Remitente'] }}</p>
-        <p><strong>Celular Remitente:</strong> {{ resultado['Celular Remitente'] }}</p>
         <p><strong>Destinatario:</strong> {{ resultado['Destinatario'] }}</p>
+        <p><strong>Celular Destinatario:</strong> {{ resultado['Celular Destinatario'] }}</p>
         <p><strong>DNI Destinatario:</strong> {{ resultado['DNI Destinatario'] }}</p>
         <p><strong>CP Destino:</strong> {{ resultado['CP Destino'] }}</p>
         <p><strong>Peso:</strong> {{ resultado['Peso'] }} kg</p>
-        <p><strong>Frágil:</strong> {{ 'Sí' if resultado['Fragil'] == '1' else 'No' }}</p>
+        <p><strong>Frágil:</strong> {{ "Sí" if resultado['Frágil'] else "No" }}</p>
         <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
 
         <div class="seguimiento">
