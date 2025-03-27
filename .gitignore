@@ -1,0 +1,16 @@
+# Bases de datos y backups
+*.db
+*.sqlite
+*.csv
+*.json
+
+# Archivos temporales
+__pycache__/
+*.pyc
+*.pyo
+*.Zone.Identifier
+
+# Archivos generados
+etiqueta_envio.pdf
+static/qr.png
+
