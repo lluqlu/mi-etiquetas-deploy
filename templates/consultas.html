@@ -1,81 +1,79 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Consultas de Envíos</title>
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Consultas de Envíos</h1>
+{% extends "base.html" %}
+{% block content %}
+<div class="contenedor">
+    <h2 class="titulo">Consultas de Envíos</h2>
+    <form id="formulario-busqueda" method="POST" action="/consultas">
+        <label for="codigo">Buscar código de seguimiento:</label>
+        <input type="text" id="codigo" name="codigo" placeholder="Ej: AR-1900-01">
+        <button type="submit">Buscar</button>
+    </form>
 
-        <form method="POST" action="/consultas">
-            <label for="codigo">Buscar código de seguimiento:</label>
-            <input type="text" id="codigo" name="codigo" placeholder="Ej: AR-1900-01" required>
-            <button type="submit">Buscar</button>
-        </form>
+    <button onclick="iniciarEscaneo()">
+        <i class="fas fa-camera"></i> Escanear con Cámara
+    </button>
+    <div id="lector-camara" style="width: 300px; margin-top: 10px;"></div>
 
-        <button onclick="startScanner()">
-            <span class="icon">📷</span> Escanear con Cámara
-        </button>
+    {% if resultado %}
+    <div class="resultado">
+        <h3>Resultado:</h3>
+        <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
+        <p><strong>Remitente:</strong> {{ resultado['Remitente'] }}</p>
+        <p><strong>DNI Remitente:</strong> {{ resultado['DNI Remitente'] }}</p>
+        <p><strong>Celular Remitente:</strong> {{ resultado['Celular Remitente'] }}</p>
+        <p><strong>Destinatario:</strong> {{ resultado['Destinatario'] }}</p>
+        <p><strong>DNI Destinatario:</strong> {{ resultado['DNI Destinatario'] }}</p>
+        <p><strong>CP Destino:</strong> {{ resultado['CP Destino'] }}</p>
+        <p><strong>Peso:</strong> {{ resultado['Peso'] }} kg</p>
+        <p><strong>Frágil:</strong> {{ 'Sí' if resultado['Fragil'] == '1' else 'No' }}</p>
+        <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
 
-        <div id="scanner-container" style="display: none;">
-            <video id="preview" width="100%"></video>
+        <div class="seguimiento">
+            <h4>Seguimiento:</h4>
+            <ul>
+                {% for evento in eventos %}
+                <li>{{ evento['fechahora'] }} - {{ evento['evento'] }}</li>
+                {% endfor %}
+            </ul>
+            <form method="POST" action="/agregar_evento">
+                <input type="hidden" name="codigo" value="{{ resultado['Seguimiento'] }}">
+                <label for="evento">Nuevo evento:</label>
+                <input type="text" name="evento" id="evento" placeholder="Ej: En viaje" required>
+                <button type="submit">Agregar evento</button>
+            </form>
         </div>
-
-        {% if resultado %}
-        <div class="resultado">
-            <h3>Resultado:</h3>
-            <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
-            <p><strong>Remitente:</strong> {{ resultado['Remitente'] }}</p>
-            <p><strong>DNI Remitente:</strong> {{ resultado['DNI Rem'] }}</p>
-            <p><strong>Celular Remitente:</strong> {{ resultado['Cel Rem'] }}</p>
-            <p><strong>Destinatario:</strong> {{ resultado['Destinatario'] }}</p>
-            <p><strong>DNI Destinatario:</strong> {{ resultado['DNI Dest'] }}</p>
-            <p><strong>CP Destino:</strong> {{ resultado['CP Dest'] }}</p>
-            <p><strong>Peso:</strong> {{ resultado['Peso'] }} kg</p>
-            <p><strong>Frágil:</strong> {{ resultado['Frágil'] }}</p>
-            <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
-
-            <div class="seguimiento">
-                <h4>Seguimiento:</h4>
-                <ul>
-                    {% for item in eventos %}
-                        <li>{{ item['fechahora'] }} - {{ item['evento'] }}</li>
-                    {% endfor %}
-                </ul>
-                <form method="POST" action="/agregar_evento">
-                    <input type="hidden" name="codigo" value="{{ resultado['Seguimiento'] }}">
-                    <input type="text" name="evento" placeholder="Nuevo evento" required>
-                    <button type="submit">Agregar evento</button>
-                </form>
-            </div>
-        </div>
-        {% endif %}
-
-        <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
-        <script>
-            function startScanner() {
-                document.getElementById('scanner-container').style.display = 'block';
-                let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
-                scanner.addListener('scan', function (content) {
-                    document.getElementById('codigo').value = content;
-                    document.forms[0].submit();
-                });
-                Instascan.Camera.getCameras().then(function (cameras) {
-                    if (cameras.length > 0) {
-                        scanner.start(cameras[0]);
-                    } else {
-                        alert('No se encontraron cámaras.');
-                    }
-                }).catch(function (e) {
-                    console.error(e);
-                });
-            }
-        </script>
     </div>
-</body>
-</html>
+    {% endif %}
+</div>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+  function iniciarEscaneo() {
+    const scanner = new Html5Qrcode("lector-camara");
+    const config = {
+      fps: 10,
+      qrbox: 250,
+      formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
+      facingMode: { exact: "environment" }
+    };
+
+    scanner.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText, decodedResult) => {
+        document.getElementById("codigo").value = decodedText;
+        scanner.stop().then(() => {
+          document.getElementById("formulario-busqueda").submit();
+        });
+      },
+      (errorMessage) => {
+        // errores ignorados
+      }
+    ).catch(err => {
+      console.error("Error al iniciar escáner:", err);
+    });
+  }
+</script>
+{% endblock %}
 
 
 

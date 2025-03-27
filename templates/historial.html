@@ -1,11 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Historial de Envíos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Historial de Envíos</h2>
 
-{% extends "base.html" %}
-
-{% block content %}
-<div class="form-container">
-    <h2>Historial de Envíos</h2>
-    <div class="table-container">
-        <table>
+        <table border="1" cellspacing="0" cellpadding="5">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -13,17 +16,9 @@
                     <th>Remitente</th>
                     <th>DNI Rem</th>
                     <th>Cel Rem</th>
-                    <th>Dirección Rem</th>
-                    <th>CP Rem</th>
-                    <th>Ciudad Rem</th>
-                    <th>Prov Rem</th>
                     <th>Destinatario</th>
                     <th>DNI Dest</th>
-                    <th>Cel Dest</th>
-                    <th>Dirección Dest</th>
                     <th>CP Dest</th>
-                    <th>Ciudad Dest</th>
-                    <th>Prov Dest</th>
                     <th>Peso</th>
                     <th>Frágil</th>
                     <th>Observaciones</th>
@@ -32,34 +27,27 @@
             <tbody>
                 {% for envio in envios %}
                 <tr>
-                    <td>{{ envio['ID'] }}</td>
-                    <td>{{ envio['Seguimiento'] }}</td>
-                    <td>{{ envio['Remitente'] }}</td>
-                    <td>{{ envio['DNI Rem'] }}</td>
-                    <td>{{ envio['Cel Rem'] }}</td>
-                    <td>{{ envio['Dirección Rem'] }}</td>
-                    <td>{{ envio['CP Rem'] }}</td>
-                    <td>{{ envio['Ciudad Rem'] }}</td>
-                    <td>{{ envio['Prov Rem'] }}</td>
-                    <td>{{ envio['Destinatario'] }}</td>
-                    <td>{{ envio['DNI Dest'] }}</td>
-                    <td>{{ envio['Cel Dest'] }}</td>
-                    <td>{{ envio['Dirección Dest'] }}</td>
-                    <td>{{ envio['CP Dest'] }}</td>
-                    <td>{{ envio['Ciudad Dest'] }}</td>
-                    <td>{{ envio['Prov Dest'] }}</td>
-                    <td>{{ envio['Peso'] }} KG</td>
-                    <td>{{ envio['Frágil'] }}</td>
-                    <td>{{ envio['Observaciones'] }}</td>
+                    <td>{{ envio[0] }}</td>
+                    <td>{{ envio[1] }}</td>
+                    <td>{{ envio[2] }}</td>
+                    <td>{{ envio[3] }}</td>
+                    <td>{{ envio[4] }}</td>
+                    <td>{{ envio[5] }}</td>
+                    <td>{{ envio[6] }}</td>
+                    <td>{{ envio[7] }}</td>
+                    <td>{{ envio[8] }} KG</td>
+                    <td>{% if envio[9] == 1 %}Sí{% else %}No{% endif %}</td>
+                    <td>{{ envio[10] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    </div>
 
-    <div class="btn-group">
-        <a href="/exportar_csv">Exportar CSV</a>
-        <a href="{{ url_for('index') }}">Volver al Generador</a>
+        <br>
+        <a href="{{ url_for('export_csv') }}"><button>Exportar CSV</button></a>
+        <br><br>
+        <a href="{{ url_for('index') }}"><button>Volver al Generador</button></a>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>
+
