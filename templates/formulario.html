@@ -5,67 +5,90 @@
     <title>Generador de Etiquetas</title>
     <link rel="stylesheet" href="/static/styles.css">
     <style>
-        label.required::after {
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px; /* Aumentado para mayor separación */
+        }
+        .form-section label.required::after {
             content: " *";
             color: red;
+        }
+        .form-section input, .form-section select {
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Generador de Etiquetas</h2>
-        <form method="post">
-            <div class="form-section">
-                <h3 style="color: #00b6ad">Remitente</h3>
-                <input type="text" name="remitente" placeholder="Nombre y Apellido" required>
-                <input type="text" name="dni_rem" placeholder="DNI">
-                <input type="text" name="cel_rem" placeholder="Celular">
-                <input type="text" name="direccion_rem" placeholder="Dirección" required>
-                <input type="text" name="cp_rem" placeholder="Código Postal" required>
-                <input type="text" name="ciudad_rem" placeholder="Ciudad" required>
-                <input type="text" name="prov_rem" placeholder="Provincia" required>
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-section">
+                    <h3>Remitente</h3>
+                    <label class="required">Nombre y Apellido</label>
+                    <input type="text" name="remitente" required>
+                    <label>DNI</label>
+                    <input type="text" name="dni_rem">
+                    <label>Celular</label>
+                    <input type="text" name="cel_rem">
+                    <label class="required">Dirección</label>
+                    <input type="text" name="dir_rem" required>
+                    <label class="required">Código Postal</label>
+                    <input type="text" name="cp_rem" required>
+                    <label class="required">Ciudad</label>
+                    <input type="text" name="ciudad_rem" required>
+                    <label class="required">Provincia</label>
+                    <input type="text" name="prov_rem" required>
+                </div>
+                <div class="form-section">
+                    <h3>Destinatario</h3>
+                    <label class="required">Nombre y Apellido</label>
+                    <input type="text" name="destinatario" required>
+                    <label>DNI</label>
+                    <input type="text" name="dni_dest">
+                    <label class="required">Celular</label>
+                    <input type="text" name="cel_dest" required>
+                    <label class="required">Dirección</label>
+                    <input type="text" name="dir_dest" required>
+                    <label class="required">Código Postal</label>
+                    <input type="text" name="cp_dest" required>
+                    <label class="required">Ciudad</label>
+                    <input type="text" name="ciudad_dest" required>
+                    <label class="required">Provincia</label>
+                    <input type="text" name="prov_dest" required>
+                </div>
             </div>
 
             <div class="form-section">
-                <h3 style="color: #00b6ad">Destinatario</h3>
-                <input type="text" name="destinatario" placeholder="Nombre y Apellido" required>
-                <input type="text" name="dni_dest" placeholder="DNI">
-                <input type="text" name="celular_dest" placeholder="Celular" required>
-                <input type="text" name="direccion_dest" placeholder="Dirección" required>
-                <input type="text" name="cp_dest" placeholder="Código Postal" required>
-                <input type="text" name="ciudad_dest" placeholder="Ciudad" required>
-                <input type="text" name="prov_dest" placeholder="Provincia" required>
-            </div>
-
-            <div class="form-section">
-                <label for="modo"><strong>🧭 Modo de uso</strong></label>
-                <select name="modo" id="modo" required>
+                <label><span style="color: orange;">📦</span> Modo de uso</label>
+                <select name="modo">
                     <option value="1">🚚 Courier Propio</option>
                     <option value="2">📦 Logística Externa</option>
                     <option value="3">🧢 Envíos Thana</option>
                 </select>
-                <ul style="font-size: 12px; margin-top: 5px;">
-                    <li>🚚 Courier Propio: genera código de seguimiento y QR de llamada.</li>
-                    <li>📦 Logística Externa: deja espacio libre para código externo.</li>
-                    <li>🧢 Envíos Thana: genera código de Thana y QR con Instagram.</li>
+                <ul style="font-size: small;">
+                    <li><b>🚚 Courier Propio:</b> genera código de seguimiento y QR de llamada.</li>
+                    <li><b>📦 Logística Externa:</b> deja espacio libre para código externo.</li>
+                    <li><b>🧢 Envíos Thana:</b> genera código de Thana y QR con Instagram.</li>
                 </ul>
             </div>
 
-            <input type="number" step="0.01" name="peso" placeholder="Peso del paquete (kg)" required>
-
-            <label for="fragil">¿Es frágil?</label>
-            <select name="fragil" id="fragil">
-                <option value="no">No</option>
-                <option value="si">Sí</option>
-            </select>
-
-            <label for="observaciones">Observaciones (opcional, máx. 50 caracteres):</label>
-            <input type="text" name="observaciones" maxlength="50">
+            <div class="form-section">
+                <label>Peso del paquete (kg):</label>
+                <input type="text" name="peso">
+                <label>¿Es frágil?</label>
+                <select name="fragil">
+                    <option value="No">No</option>
+                    <option value="Sí">Sí</option>
+                </select>
+                <label>Observaciones (opcional, máx. 50 caracteres):</label>
+                <input type="text" name="observaciones" maxlength="50">
+            </div>
 
             <button type="submit">Generar Etiqueta</button>
         </form>
     </div>
 </body>
 </html>
-
 
