@@ -3,6 +3,7 @@ import qrcode
 import json
 import os
 import sqlite3
+import requests  
 from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code128
@@ -41,8 +42,9 @@ def logout():
     session.pop('usuario', None)
     return redirect(url_for('index'))
 
+
+
 @app.route('/consultas', methods=['GET', 'POST'])
-@requires_auth
 def consultas():
     codigo = request.args.get('codigo') or request.form.get('codigo')
     resultado = None
@@ -58,7 +60,6 @@ def consultas():
         resultado_raw = cursor.fetchone()
 
         if resultado_raw:
-            # Mapeo de nombres amigables para el HTML
             resultado = {
                 'Seguimiento': resultado_raw['seguimiento'] or "",
                 'Remitente': resultado_raw['remitente'] or "",
@@ -70,12 +71,27 @@ def consultas():
                 'CP Destino': resultado_raw['cp_dest'] or "",
                 'Peso': resultado_raw['peso'] or "",
                 'Frágil': bool(resultado_raw['fragil']),
-                'Observaciones': resultado_raw['observaciones'] or "",
-                
+                'Observaciones': resultado_raw['observaciones'] or ""
             }
 
-            cursor.execute("SELECT fechahora, evento FROM seguimiento WHERE seguimiento = ? ORDER BY id", (codigo,))
-            eventos = cursor.fetchall()
+            resultado['codigo_externo'] = resultado_raw['codigo_externo'] or ''
+
+            # Ver si hay código externo y consultar AfterShip
+            if resultado['codigo_externo']:
+                eventos = consultar_aftership(resultado['codigo_externo'])
+
+                # Convertir a formato esperado (dict con 'fechahora' y 'evento')
+                eventos = [
+                    {
+                        "fechahora": e['checkpoint_time'],
+                        "evento": e['message']
+                    }
+                    for e in eventos
+                ]
+            else:
+                # Si no hay código externo, usar eventos locales
+                cursor.execute("SELECT fechahora, evento FROM seguimiento WHERE seguimiento = ? ORDER BY id", (codigo,))
+                eventos = cursor.fetchall()
 
             if request.method == 'POST':
                 nuevo_evento = request.form.get('evento')
@@ -85,6 +101,7 @@ def consultas():
                                    (codigo, fecha_actual, nuevo_evento))
                     conn.commit()
                     eventos.append({"fechahora": fecha_actual, "evento": nuevo_evento})
+
         else:
             mensaje = "No se encontró ningún envío con ese código."
 
@@ -92,6 +109,19 @@ def consultas():
 
     return render_template("consultas.html", resultado=resultado, codigo=codigo, eventos=eventos, mensaje=mensaje)
 
+
+
+@app.route('/agregar_codigo_externo', methods=['POST'])
+def agregar_codigo_externo():
+    codigo = request.form.get('codigo')
+    codigo_externo = request.form.get('codigo_externo')
+    if codigo and codigo_externo:
+        conn = conectar_bd()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE envios SET codigo_externo = ? WHERE seguimiento = ?", (codigo_externo, codigo))
+        conn.commit()
+        conn.close()
+    return redirect(url_for('consultas', codigo=codigo))
 
 
 @app.route('/historial')
@@ -314,3 +344,23 @@ def index():
 def preview():
     return send_file("etiqueta_envio.pdf")
 
+def consultar_aftership(codigo_externo):
+    try:
+        url = f"https://api.aftership.com/v4/trackings/andreani-api/{codigo_externo}"
+
+
+
+        headers = {
+            "aftership-api-key": "asat_7e8ae2c680be478a8560f148358726da",  # Reemplazar por tu clave
+            "Content-Type": "application/json"
+        }
+        r = requests.get(url, headers=headers)
+        if r.ok:
+            data = r.json()
+            return data['data']['tracking']['checkpoints']
+    except:
+        pass
+    print("Consultando AfterShip para:", codigo_externo)
+    print("Respuesta:", r.status_code, r.text)
+
+    return []

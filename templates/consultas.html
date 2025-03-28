@@ -35,6 +35,17 @@
         <p><strong>Peso:</strong> {{ resultado['Peso'] }} kg</p>
         <p><strong>Frágil:</strong> {{ "Sí" if resultado['Frágil'] else "No" }}</p>
         <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
+        {% if not resultado['codigo_externo'] %}
+        <form method="POST" action="/agregar_codigo_externo" style="margin-top: 15px;">
+        <input type="hidden" name="codigo" value="{{ resultado['Seguimiento'] }}">
+        <label for="codigo_externo">Código externo (Andreani, etc):</label>
+        <input type="text" name="codigo_externo" required>
+        <button type="submit">Guardar</button>
+        </form>
+        {% else %}
+       <p><strong>Código externo:</strong> {{ resultado['codigo_externo'] }}</p>
+    {% endif %}
+
 
         <div class="seguimiento">
             <h4>Seguimiento:</h4>
