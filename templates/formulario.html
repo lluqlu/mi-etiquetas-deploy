@@ -9,15 +9,70 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
+            margin-bottom: 20px;
         }
+    
+        .form-section {
+            padding: 10px;
+            background-color: #f4fafa;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+        }
+    
         .form-section label.required::after {
             content: " *";
             color: red;
         }
-        .form-section input, .form-section select {
+    
+        .form-section label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    
+        .form-section input,
+        .form-section select {
             width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #ffffff;
+            box-sizing: border-box;
+        }
+    
+        select,
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    
+        button[type="submit"] {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #00b6ad;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+    
+        button[type="submit"]:hover {
+            background-color: #00978f;
+        }
+    
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+    
+            .form-section {
+                margin-bottom: 20px;
+            }
         }
     </style>
+    
 </head>
 <body>
     <div class="container">

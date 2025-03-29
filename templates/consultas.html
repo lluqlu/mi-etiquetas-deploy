@@ -5,13 +5,17 @@
 
     <form id="formulario-busqueda" method="POST" action="/consultas">
         <label for="codigo">Buscar código de seguimiento:</label>
-        <input type="text" id="codigo" name="codigo" placeholder="Ej: AR-1900-01">
+        <input type="text" name="codigo" placeholder="Ej: AR-1900-01" class="input-busqueda">
+
         <button type="submit">Buscar</button>
     </form>
 
-    <button onclick="iniciarEscaneo()">
-        <i class="fas fa-camera"></i> Escanear con Cámara
-    </button>
+    <div class="contenedor-escaneo">
+      <button type="button" onclick="iniciarEscaneo()">
+          <i class="fas fa-camera"></i> Escanear con Cámara
+      </button>
+    </div>
+  
     <div id="lector-camara" style="width: 300px; margin-top: 10px;"></div>
 
     <div id="spinner">

@@ -1,43 +1,39 @@
+/* Estilos generales */
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  padding: 20px;
+  padding: 0;
+  background-color: #f0f4f8;
+  color: #333;
 }
 
 .container {
   max-width: 800px;
   margin: 0 auto;
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 10px;
 }
 
-h1 {
-  text-align: center;
+h1, h2, h3, h4 {
   color: #2cc5b5;
 }
 
-h2 {
-  color: #2cc5b5;
-  margin-bottom: 10px;
+label {
+  display: block;
+  margin-top: 10px;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-input[type="text"],
-input[type="number"],
-select {
+input[type="text"], input[type="password"], select {
   width: 100%;
   padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #e8f4fd;
+  box-sizing: border-box;
+  font-size: 16px;
 }
 
 button {
@@ -48,52 +44,162 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #27b3a6;
+  background-color: #25b0a5;
 }
 
-.columnas {
+/* Contenedor escáner */
+.contenedor-escaneo {
+  margin-top: 10px;
+  margin-bottom: 10px;
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  justify-content: start;
 }
 
-.columna {
-  flex: 1;
-  min-width: 300px;
+.contenedor-escaneo button {
+  width: auto;
 }
 
-fieldset {
-  border: 1px solid #ccc;
-  border-radius: 8px;
+/* Estilos para resultados y eventos */
+.datos-envio {
+  margin-top: 20px;
   padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
   background-color: #f9f9f9;
 }
 
-legend {
-  font-weight: bold;
-  color: #555;
+.datos-envio p {
+  margin: 5px 0;
 }
 
-small {
-  color: #555;
-  font-size: 13px;
-  display: block;
-  margin-top: 8px;
+.eventos {
+  margin-top: 25px;
+  padding: 15px;
+  border: 1px solid #2cc5b5;
+  border-radius: 8px;
+  background-color: #e6f9f8;
 }
 
-@media (max-width: 600px) {
-  .columnas {
-    flex-direction: column;
+.eventos h4 {
+  margin-bottom: 10px;
+  color: #2b9d94;
+}
+
+.eventos ul {
+  padding-left: 20px;
+  font-size: 14px;
+}
+
+.eventos li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media screen and (max-width: 480px) {
+  h2 {
+    font-size: 1.2rem;
   }
 
-  .columna {
-    width: 100%;
+  .resultado p, .resultado strong, label, input, button {
+    font-size: 14px;
   }
 
   button {
     width: 100%;
   }
+
+  .contenedor-escaneo {
+    justify-content: center;
+  }
 }
+
+/* Contenedor general consultas */
+.contenedor-consultas {
+  max-width: 600px;
+  margin: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* FORMULARIO MODERNO */
+form {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="email"],
+form select,
+form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+  border-color: #1abc9c;
+  box-shadow: 0 0 5px rgba(26, 188, 156, 0.4);
+  outline: none;
+}
+
+button {
+  background-color: #1abc9c;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #16a085;
+}
+form input[type="text"],
+form input[type="number"],
+form input[type="email"],
+form select,
+form textarea {
+  background-color: #f8f9fa; /* fondo suave tipo gris claro */
+  color: #333;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+  background-color: #ffffff;
+  border-color: #1abc9c;
+  box-shadow: 0 0 5px rgba(26, 188, 156, 0.4);
+  outline: none;
+}
+
+
+

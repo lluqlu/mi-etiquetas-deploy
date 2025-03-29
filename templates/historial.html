@@ -8,43 +8,66 @@
     <div class="container">
         <h2>Historial de Envíos</h2>
 
-        <table border="1" cellspacing="0" cellpadding="5">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Seguimiento</th>
-                    <th>Remitente</th>
-                    <th>DNI Rem</th>
-                    <th>Cel Rem</th>
-                    <th>Destinatario</th>
-                    <th>DNI Dest</th>
-                    <th>CP Dest</th>
-                    <th>Peso</th>
-                    <th>Frágil</th>
-                    <th>Observaciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for envio in envios %}
-                <tr>
-                    <td>{{ envio[0] }}</td>
-                    <td>{{ envio[1] }}</td>
-                    <td>{{ envio[2] }}</td>
-                    <td>{{ envio[3] }}</td>
-                    <td>{{ envio[4] }}</td>
-                    <td>{{ envio[5] }}</td>
-                    <td>{{ envio[6] }}</td>
-                    <td>{{ envio[7] }}</td>
-                    <td>{{ envio[8] }} KG</td>
-                    <td>{% if envio[9] == 1 %}Sí{% else %}No{% endif %}</td>
-                    <td>{{ envio[10] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div style="overflow-x: auto; width: 100%; max-width: 100%; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+  <table border="1" cellpadding="8" style="min-width: 800px; border-collapse: collapse; width: 100%;">
+    <thead style="background-color: #f0f0f0;">
+      <tr>
+        <th>ID</th>
+        <th>Seguimiento</th>
+        <th>Remitente</th>
+        <th class="ocultar-movil">DNI Rem</th>
+        <th>Cel Rem</th>
+        <th>Destinatario</th>
+        <th class="ocultar-movil">DNI Dest</th>
+        <th>CP Dest</th>
+        <th>Peso</th>
+        <th>Frágil</th>
+        <th class="ocultar-movil">Observaciones</th>
+        <th class="ocultar-movil">Dirección Rem</th>
+        <th class="ocultar-movil">CP Rem</th>
+        <th>Ciudad Rem</th>
+        <th>Prov Rem</th>
+        <th class="ocultar-movil">Dirección Dest</th>
+        <th>Ciudad Dest</th>
+        <th>Prov Dest</th>
+        <th>Celular Dest</th>
+        <th class="ocultar-movil">Código Externo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for envio in envios %}
+        <tr>
+          <td>{{ envio[0] }}</td>
+          <td>{{ envio[1] }}</td>
+          <td>{{ envio[2] }}</td>
+          <td class="ocultar-movil">{{ envio[3] }}</td>
+          <td>{{ envio[4] }}</td>
+          <td>{{ envio[5] }}</td>
+          <td class="ocultar-movil">{{ envio[6] }}</td>
+          <td>{{ envio[7] }}</td>
+          <td>{{ envio[8] }}</td>
+          <td>{{ "Sí" if envio[9] == 1 else "No" }}</td>
+          <td class="ocultar-movil">{{ envio[10] }}</td>
+          <td class="ocultar-movil">{{ envio[11] }}</td>
+          <td class="ocultar-movil">{{ envio[12] }}</td>
+          <td>{{ envio[13] }}</td>
+          <td>{{ envio[14] }}</td>
+          <td class="ocultar-movil">{{ envio[15] }}</td>
+          <td>{{ envio[16] }}</td>
+          <td>{{ envio[17] }}</td>
+          <td>{{ envio[18] }}</td>
+          <td class="ocultar-movil">{{ envio[19] or "" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
 
         <br>
-        <a href="{{ url_for('export_csv') }}"><button>Exportar CSV</button></a>
+        <a href="{{ url_for('exportar_csv') }}"><button>Exportar CSV</button></a>
+
         <br><br>
         <a href="{{ url_for('index') }}"><button>Volver al Generador</button></a>
     </div>

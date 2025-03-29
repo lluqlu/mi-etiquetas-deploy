@@ -1,15 +1,20 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for, Response, session, make_response
+from flask import Flask, render_template, request, send_file, redirect, url_for, Response, session, make_response, send_file
 import qrcode
 import json
 import os
 import sqlite3
 import requests  
+import csv
 from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import portrait
 from functools import wraps
 from dotenv import load_dotenv
+
+from io import StringIO
+
+
 
 load_dotenv()
 
@@ -128,17 +133,93 @@ def agregar_codigo_externo():
 @requires_auth
 def historial():
     conn = conectar_bd()
-    conn.row_factory = sqlite3.Row
+    conn.row_factory = None  # Usamos tupla simple para que el índice [0]...[19] funcione
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM envios ORDER BY rowid DESC")
+    cursor.execute("""
+        SELECT 
+            rowid AS id,
+            seguimiento,
+            remitente,
+            dni_rem,
+            cel_rem,
+            destinatario,
+            dni_dest,
+            cp_dest,
+            peso,
+            fragil,
+            observaciones,
+            direccion_rem,
+            cp_rem,
+            ciudad_rem,
+            prov_rem,
+            direccion_dest,
+            ciudad_dest,
+            prov_dest,
+            celular_dest,
+            codigo_externo
+        FROM envios
+        ORDER BY rowid DESC
+    """)
     envios = cursor.fetchall()
     conn.close()
     return render_template("historial.html", envios=envios)
 
-@app.route('/export-csv')
+
+
+
+
+@app.route('/exportar_csv')
 @requires_auth
-def export_csv():
-    return send_file("static/envios.csv", as_attachment=True)
+def exportar_csv():
+    conn = conectar_bd()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 
+            seguimiento,
+            remitente,
+            dni_rem,
+            cel_rem,
+            destinatario,
+            dni_dest,
+            cp_dest,
+            peso,
+            fragil,
+            observaciones,
+            direccion_rem,
+            cp_rem,
+            ciudad_rem,
+            prov_rem,
+            direccion_dest,
+            ciudad_dest,
+            prov_dest,
+            celular_dest,
+            codigo_externo
+        FROM envios
+        ORDER BY rowid DESC
+    """)
+    envios = cursor.fetchall()
+    conn.close()
+
+    output = StringIO()
+    writer = csv.writer(output, quoting=csv.QUOTE_ALL)
+    
+    # Encabezados
+    writer.writerow([
+        "Seguimiento", "Remitente", "DNI Rem", "Cel Rem", "Destinatario", "DNI Dest",
+        "CP Dest", "Peso", "Frágil", "Observaciones",
+        "Dirección Rem", "CP Rem", "Ciudad Rem", "Prov Rem",
+        "Dirección Dest", "Ciudad Dest", "Prov Dest",
+        "Celular Dest", "Código Externo"
+    ])
+    
+    for envio in envios:
+        writer.writerow(envio)
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=historial_envios.csv"
+    response.headers["Content-type"] = "text/csv"
+    return response
+
 
 def registrar_envio(data, numero_seguimiento):
     conn = sqlite3.connect("datos.db")
@@ -263,7 +344,7 @@ def get_next_tracking(cp_dest):
     datos["secuencia"] += 1
     with open(ruta, "w") as f:
         json.dump(datos, f)
-    return f"AR-{cp_dest}-{str(datos['secuencia']).zfill(2)}"
+    return f"AR-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
 
 def get_next_tracking_thana(cp_dest):
     ruta = "static/contador_thana.json"
