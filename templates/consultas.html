@@ -67,6 +67,17 @@
   {% if resultado %}
     <div class="datos-envio">
       <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
+      {% if resultado['codigo_externo'] %}
+  <p><strong>Código Externo:</strong> {{ resultado['codigo_externo'] }}</p>
+{% else %}
+  <form method="POST" action="/consultas" style="margin-top: 10px;">
+    <input type="hidden" name="codigo" value="{{ resultado['Seguimiento'] }}">
+    <label for="codigo_externo"><strong>Agregar/Vincular código externo:</strong></label>
+    <input type="text" id="codigo_externo" name="codigo_externo" placeholder="Ej: 3600025XXXXXXX" maxlength="40" required>
+    <button type="submit">Guardar</button>
+  </form>
+{% endif %}
+
 
       <h3>Resultado:</h3>
       <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
