@@ -415,6 +415,7 @@ def get_next_tracking_thana(cp_dest):
 
 @app.route('/seguimiento')
 def seguimiento():
+    registrar_acceso()
     codigo = request.args.get('codigo')
     resultado = None
     eventos = []
@@ -448,6 +449,7 @@ def seguimiento():
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    registrar_acceso()
     if request.method == 'POST':
         modo = request.form.get('modo')
         datos = {
@@ -501,3 +503,41 @@ def consultar_aftership(codigo_externo):
     print("Respuesta:", r.status_code, r.text)
 
     return []
+
+
+def obtener_ubicacion(ip):
+    try:
+        respuesta = requests.get(f"https://ipapi.co/{ip}/json/")
+        data = respuesta.json()
+        ciudad = data.get("city", "Desconocida")
+        region = data.get("region", "")
+        pais = data.get("country_name", "")
+        return f"{ciudad}, {region}, {pais}"
+    except:
+        return "Ubicación desconocida"
+
+
+def registrar_acceso():
+    ip = request.remote_addr or 'N/A'
+    ruta = request.path
+    user_agent = request.headers.get('User-Agent', 'N/A')
+    fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ubicacion = obtener_ubicacion(ip)
+
+    with open("/data/accesos.csv", "a", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([fecha, ip, ubicacion, ruta, user_agent])
+
+
+@app.route("/visitas")
+@requires_auth
+def visitas():
+    registros = []
+    try:
+        with open("/data/accesos.csv", "r") as f:
+            reader = csv.reader(f)
+            for fila in reader:
+                registros.append(fila)
+    except FileNotFoundError:
+        registros = []
+    return render_template("visitas.html", registros=registros)
