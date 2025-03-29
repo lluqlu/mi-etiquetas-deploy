@@ -66,6 +66,8 @@
 
   {% if resultado %}
     <div class="datos-envio">
+      <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
+
       <h3>Resultado:</h3>
       <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
       <p><strong>Remitente:</strong> {{ resultado['Remitente'] }}</p>
