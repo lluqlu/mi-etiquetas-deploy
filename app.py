@@ -336,29 +336,81 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
 
     c.save()
 
-def get_next_tracking(cp_dest):
+#def get_next_tracking(cp_dest):
+#    ruta = "static/contador.json"
+#    if not os.path.exists(ruta):
+#        with open(ruta, "w") as f:
+#           json.dump({"secuencia": 0}, f)
+#    with open(ruta, "r") as f:
+#        datos = json.load(f)
+#    datos["secuencia"] += 1
+#    with open(ruta, "w") as f:
+#        json.dump(datos, f)
+#    return f"AR-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+
+#def get_next_tracking_thana(cp_dest):
+ #   ruta = "static/contador_thana.json"
+  #  if not os.path.exists(ruta):
+   #     with open(ruta, "w") as f:
+    #        json.dump({"secuencia": 0}, f)
+    #with open(ruta, "r") as f:
+     #   datos = json.load(f)
+    #datos["secuencia"] += 1
+    #with open(ruta, "w") as f:
+     #   json.dump(datos, f)
+    #return f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+
+    def get_next_tracking(cp_dest):
     ruta = "static/contador.json"
     if not os.path.exists(ruta):
         with open(ruta, "w") as f:
             json.dump({"secuencia": 0}, f)
-    with open(ruta, "r") as f:
-        datos = json.load(f)
-    datos["secuencia"] += 1
-    with open(ruta, "w") as f:
-        json.dump(datos, f)
-    return f"AR-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
 
+    while True:
+        with open(ruta, "r") as f:
+            datos = json.load(f)
+        datos["secuencia"] += 1
+        nuevo_codigo = f"AR-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+
+        # Verificamos en la base de datos
+        conn = conectar_bd()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM envios WHERE seguimiento = ?", (nuevo_codigo,))
+        existe = cursor.fetchone()
+        conn.close()
+
+        if not existe:
+            with open(ruta, "w") as f:
+                json.dump(datos, f)
+            return nuevo_codigo
+        
+        
 def get_next_tracking_thana(cp_dest):
     ruta = "static/contador_thana.json"
     if not os.path.exists(ruta):
         with open(ruta, "w") as f:
             json.dump({"secuencia": 0}, f)
-    with open(ruta, "r") as f:
-        datos = json.load(f)
-    datos["secuencia"] += 1
-    with open(ruta, "w") as f:
-        json.dump(datos, f)
-    return f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+
+    while True:
+        with open(ruta, "r") as f:
+            datos = json.load(f)
+        datos["secuencia"] += 1
+        nuevo_codigo = f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
+
+        # Verificamos en la base de datos
+        conn = conectar_bd()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM envios WHERE seguimiento = ?", (nuevo_codigo,))
+        existe = cursor.fetchone()
+        conn.close()
+
+        if not existe:
+            with open(ruta, "w") as f:
+                json.dump(datos, f)
+            return nuevo_codigo
+        
+        
+
 @app.route('/seguimiento')
 def seguimiento():
     codigo = request.args.get('codigo')
