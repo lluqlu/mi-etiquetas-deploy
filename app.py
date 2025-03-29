@@ -22,7 +22,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "etiqueta_secreta")
 
 def conectar_bd():
-    return sqlite3.connect("datos.db")
+    #return sqlite3.connect("datos.db")
+    return sqlite3.connect("/data/datos.db")
 
 # --------- AUTENTICACIÓN BÁSICA --------- #
 def check_auth(username, password):

@@ -1,131 +1,140 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="contenedor">
-    <h2 class="titulo">Consultas de Envíos</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultas de Envíos</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <style>
+    #scanner {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      border: 2px dashed #2cc5b5;
+      padding: 10px;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+    .datos-envio {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+    .datos-envio p {
+      margin: 5px 0;
+    }
+    .eventos {
+      margin-top: 25px;
+      padding: 15px;
+      border: 1px solid #2cc5b5;
+      border-radius: 8px;
+      background-color: #e6f9f8;
+    }
+    .eventos h4 {
+      margin-bottom: 10px;
+      color: #2b9d94;
+    }
+    .eventos ul {
+      padding-left: 20px;
+    }
+    .eventos li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Consultas de Envíos</h1>
+  <form method="GET" action="/consultas">
+    <label for="codigo">Buscar código de seguimiento:</label>
+    <input type="text" name="codigo" id="codigo" placeholder="Ej: AR-1900-01" value="{{ codigo or '' }}">
+    <button type="submit">Buscar</button>
+  </form>
 
-    <form id="formulario-busqueda" method="POST" action="/consultas">
-        <label for="codigo">Buscar código de seguimiento:</label>
-        <input type="text" name="codigo" placeholder="Ej: AR-1900-01" class="input-busqueda">
+  <hr>
 
-        <button type="submit">Buscar</button>
-    </form>
+  <button onclick="iniciarEscaneo()">📷 Escanear con Cámara</button>
+  <div id="scanner"></div>
+  <div id="resultado"></div>
 
-    <div class="contenedor-escaneo">
-      <button type="button" onclick="iniciarEscaneo()">
-          <i class="fas fa-camera"></i> Escanear con Cámara
-      </button>
-    </div>
-  
-    <div id="lector-camara" style="width: 300px; margin-top: 10px;"></div>
+  {% if resultado %}
+    <div class="datos-envio">
+      <h3>Resultado:</h3>
+      <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
+      <p><strong>Remitente:</strong> {{ resultado['Remitente'] }}</p>
+      <p><strong>DNI Remitente:</strong> {{ resultado['DNI Rem'] }}</p>
+      <p><strong>Celular Remitente:</strong> {{ resultado['Cel Rem'] }}</p>
+      <p><strong>Destinatario:</strong> {{ resultado['Destinatario'] }}</p>
+      <p><strong>DNI Destinatario:</strong> {{ resultado['DNI Dest'] }}</p>
+      <p><strong>CP Destino:</strong> {{ resultado['CP Dest'] }}</p>
+      <p><strong>Peso:</strong> {{ resultado['Peso'] }} kg</p>
+      <p><strong>Frágil:</strong> {{ 'Sí' if resultado['Frágil'] == '1' else 'No' }}</p>
+      <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
 
-    <div id="spinner">
-        <div class="loader"></div>
-    </div>
-
-    {% if mensaje %}
-        <p style="color: red;">{{ mensaje }}</p>
-    {% endif %}
-
-    {% if resultado %}
-    <div class="resultado">
-        <h3>Resultado:</h3>
-        <p><strong>Código:</strong> {{ resultado['Seguimiento'] }}</p>
-        <p><strong>Remitente:</strong> {{ resultado['Remitente'] }}</p>
-        <p><strong>DNI Remitente:</strong> {{ resultado['DNI Remitente'] }}</p>
-        <p><strong>Destinatario:</strong> {{ resultado['Destinatario'] }}</p>
-        <p><strong>Celular Destinatario:</strong> {{ resultado['Celular Destinatario'] }}</p>
-        <p><strong>DNI Destinatario:</strong> {{ resultado['DNI Destinatario'] }}</p>
-        <p><strong>CP Destino:</strong> {{ resultado['CP Destino'] }}</p>
-        <p><strong>Peso:</strong> {{ resultado['Peso'] }} kg</p>
-        <p><strong>Frágil:</strong> {{ "Sí" if resultado['Frágil'] else "No" }}</p>
-        <p><strong>Observaciones:</strong> {{ resultado['Observaciones'] }}</p>
-        {% if not resultado['codigo_externo'] %}
-        <form method="POST" action="/agregar_codigo_externo" style="margin-top: 15px;">
-        <input type="hidden" name="codigo" value="{{ resultado['Seguimiento'] }}">
-        <label for="codigo_externo">Código externo (Andreani, etc):</label>
-        <input type="text" name="codigo_externo" required>
-        <button type="submit">Guardar</button>
-        </form>
+      <div class="eventos">
+        <h4>Seguimiento:</h4>
+        {% if eventos %}
+          <ul>
+            {% for ev in eventos %}
+              <li>{{ ev.fecha }} - {{ ev.evento }}</li>
+            {% endfor %}
+          </ul>
         {% else %}
-       <p><strong>Código externo:</strong> {{ resultado['codigo_externo'] }}</p>
-    {% endif %}
+          <p>No hay eventos registrados aún.</p>
+        {% endif %}
 
-
-        <div class="seguimiento">
-            <h4>Seguimiento:</h4>
-            <ul>
-                {% for evento in eventos %}
-                <li>{{ evento['fechahora'] }} - {{ evento['evento'] }}</li>
-                {% endfor %}
-            </ul>
-            <form method="POST" action="/consultas">
-                <input type="hidden" name="codigo" value="{{ resultado['Seguimiento'] }}">
-                <label for="evento">Nuevo evento:</label>
-                <input type="text" name="evento" id="evento" placeholder="Ej: En viaje" required>
-                <button type="submit">Agregar evento</button>
-            </form>
-        </div>
+        <form method="POST" action="/consultas">
+          <input type="hidden" name="codigo" value="{{ codigo }}">
+          <label for="evento">Nuevo evento:</label>
+          <input type="text" name="evento" id="evento" required maxlength="100">
+          <button type="submit">Agregar evento</button>
+        </form>
+      </div>
     </div>
-    {% endif %}
+  {% elif codigo %}
+    <p style="color:red;">No se encontraron resultados para <strong>{{ codigo }}</strong>.</p>
+  {% endif %}
 </div>
 
-<!-- Estilos para el spinner -->
-<style>
-  #spinner {
-    display: none;
-    margin-top: 10px;
-  }
-
-  .loader {
-    border: 6px solid #f3f3f3;
-    border-top: 6px solid #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 0.8s linear infinite;
-    margin: auto;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-</style>
-
-<!-- Script del escáner + spinner -->
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
-  function iniciarEscaneo() {
-    const scanner = new Html5Qrcode("lector-camara");
-    const config = {
-      fps: 10,
-      qrbox: 250,
-      formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
-      facingMode: { exact: "environment" }
-    };
-
-    scanner.start(
-      { facingMode: "environment" },
-      config,
-      (decodedText, decodedResult) => {
-        document.getElementById("codigo").value = decodedText;
-        scanner.stop().then(() => {
-          document.getElementById("formulario-busqueda").submit();
-        });
+function iniciarEscaneo() {
+  Quagga.init({
+    inputStream: {
+      type: "LiveStream",
+      constraints: {
+        facingMode: "environment"
       },
-      (errorMessage) => {
-        // errores ignorados
-      }
-    ).catch(err => {
-      console.error("Error al iniciar escáner:", err);
-    });
-  }
-
-  document.getElementById("formulario-busqueda").addEventListener("submit", function () {
-    document.getElementById("spinner").style.display = "block";
+      target: document.querySelector('#scanner')
+    },
+    decoder: {
+      readers: ["code_128_reader"]
+    }
+  }, function(err) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    Quagga.start();
   });
+
+  Quagga.onDetected(function(result) {
+    const codigo = result.codeResult.code;
+    document.getElementById("codigo").value = codigo;
+    document.querySelector("form").submit();
+    Quagga.stop();
+  });
+}
 </script>
-{% endblock %}
+</body>
+</html>
+
 
 
 
