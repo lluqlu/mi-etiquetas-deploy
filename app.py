@@ -518,7 +518,10 @@ def obtener_ubicacion(ip):
 
 
 def registrar_acceso():
-    ip = request.remote_addr or 'N/A'
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if ip and ',' in ip:
+        ip = ip.split(',')[0].strip()  # Tomamos la primera si hay varias
+
     ruta = request.path
     user_agent = request.headers.get('User-Agent', 'N/A')
     fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -527,6 +530,7 @@ def registrar_acceso():
     with open("/data/accesos.csv", "a", newline='') as f:
         writer = csv.writer(f)
         writer.writerow([fecha, ip, ubicacion, ruta, user_agent])
+
 
 
 @app.route("/visitas")
