@@ -223,7 +223,8 @@ def exportar_csv():
 
 
 def registrar_envio(data, numero_seguimiento):
-    conn = sqlite3.connect("datos.db")
+    conn = conectar_bd()
+
     cursor = conn.cursor()
 
     cursor.execute("""
