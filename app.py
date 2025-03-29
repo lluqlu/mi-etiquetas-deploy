@@ -360,7 +360,7 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
      #   json.dump(datos, f)
     #return f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
 
-    def get_next_tracking(cp_dest):
+def get_next_tracking(cp_dest):
     ruta = "static/contador.json"
     if not os.path.exists(ruta):
         with open(ruta, "w") as f:
@@ -383,8 +383,10 @@ def generar_etiqueta_envio(data, modo, archivo_salida="etiqueta_envio.pdf"):
             with open(ruta, "w") as f:
                 json.dump(datos, f)
             return nuevo_codigo
+
+
         
-        
+
 def get_next_tracking_thana(cp_dest):
     ruta = "static/contador_thana.json"
     if not os.path.exists(ruta):
