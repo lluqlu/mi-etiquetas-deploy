@@ -22,8 +22,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "etiqueta_secreta")
 
 def conectar_bd():
-    #return sqlite3.connect("datos.db")
-    return sqlite3.connect("/data/datos.db")
+    ruta_db = os.getenv("DB_PATH", "datos.db")
+    return sqlite3.connect(ruta_db)
+
 
 # --------- AUTENTICACIÓN BÁSICA --------- #
 def check_auth(username, password):
@@ -367,12 +368,15 @@ def get_next_tracking(cp_dest):
             json.dump({"secuencia": 0}, f)
 
     while True:
-        with open(ruta, "r") as f:
-            datos = json.load(f)
+        try:
+            with open(ruta, "r") as f:
+                datos = json.load(f)
+        except json.JSONDecodeError:
+            datos = {"secuencia": 0}
+
         datos["secuencia"] += 1
         nuevo_codigo = f"AR-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
 
-        # Verificamos en la base de datos
         conn = conectar_bd()
         cursor = conn.cursor()
         cursor.execute("SELECT 1 FROM envios WHERE seguimiento = ?", (nuevo_codigo,))
@@ -383,9 +387,6 @@ def get_next_tracking(cp_dest):
             with open(ruta, "w") as f:
                 json.dump(datos, f)
             return nuevo_codigo
-
-
-        
 
 def get_next_tracking_thana(cp_dest):
     ruta = "static/contador_thana.json"
@@ -394,12 +395,15 @@ def get_next_tracking_thana(cp_dest):
             json.dump({"secuencia": 0}, f)
 
     while True:
-        with open(ruta, "r") as f:
-            datos = json.load(f)
+        try:
+            with open(ruta, "r") as f:
+                datos = json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            datos = {"secuencia": 0}
+
         datos["secuencia"] += 1
         nuevo_codigo = f"TH-{cp_dest}-{str(datos['secuencia']).zfill(4)}"
 
-        # Verificamos en la base de datos
         conn = conectar_bd()
         cursor = conn.cursor()
         cursor.execute("SELECT 1 FROM envios WHERE seguimiento = ?", (nuevo_codigo,))
@@ -410,7 +414,12 @@ def get_next_tracking_thana(cp_dest):
             with open(ruta, "w") as f:
                 json.dump(datos, f)
             return nuevo_codigo
+
+
+
+
         
+       
         
 
 @app.route('/seguimiento')
@@ -520,16 +529,22 @@ def obtener_ubicacion(ip):
 def registrar_acceso():
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
     if ip and ',' in ip:
-        ip = ip.split(',')[0].strip()  # Tomamos la primera si hay varias
+        ip = ip.split(',')[0].strip()
 
     ruta = request.path
     user_agent = request.headers.get('User-Agent', 'N/A')
     fecha = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     ubicacion = obtener_ubicacion(ip)
 
-    with open("/data/accesos.csv", "a", newline='') as f:
+    # 🔁 Esto es lo que cambiás
+    ruta_archivo = "accesos.csv"
+    if os.environ.get("RENDER") == "true":
+        ruta_archivo = "/data/accesos.csv"
+
+    with open(ruta_archivo, "a", newline='') as f:
         writer = csv.writer(f)
         writer.writerow([fecha, ip, ubicacion, ruta, user_agent])
+
 
 
 
@@ -537,11 +552,19 @@ def registrar_acceso():
 @requires_auth
 def visitas():
     registros = []
+
+    # Detectar ruta dependiendo del entorno
+    ruta_accesos = "accesos.csv"
+    if os.environ.get("RENDER") == "true":
+        ruta_accesos = "/data/accesos.csv"
+
     try:
-        with open("/data/accesos.csv", "r") as f:
+        with open(ruta_accesos, "r") as f:
             reader = csv.reader(f)
             for fila in reader:
                 registros.append(fila)
     except FileNotFoundError:
         registros = []
+
     return render_template("visitas.html", registros=registros)
+
