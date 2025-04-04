@@ -4,6 +4,6 @@ qrcode==7.4.2
 reportlab==3.6.12
 python-dotenv==1.0.1
 requests==2.31.0
-
-
-
+pyzbar
+pillow
+opencv-python

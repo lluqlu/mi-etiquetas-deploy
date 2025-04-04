@@ -14,12 +14,43 @@ from dotenv import load_dotenv
 
 from io import StringIO
 
+from flask import request, jsonify
+from pyzbar.pyzbar import decode
+from PIL import Image
+
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "etiqueta_secreta")
+@app.route('/leer_dni', methods=['POST'])
+def leer_dni():
+    if 'imagen_dni' not in request.files:
+        return jsonify({'error': 'No se subió ninguna imagen'}), 400
+
+    imagen = request.files['imagen_dni']
+    ruta = os.path.join(UPLOAD_FOLDER, imagen.filename)
+    imagen.save(ruta)
+
+    img = Image.open(ruta)
+    decoded_objects = decode(img)
+
+    for obj in decoded_objects:
+        if obj.type == 'PDF417':
+            datos = obj.data.decode('utf-8')
+            campos = datos.split('@')
+            if len(campos) >= 5:
+                apellido_nombre = f"{campos[1]} {campos[2]}".strip()
+                dni = campos[4].lstrip('0')
+                return jsonify({'nombre': apellido_nombre, 'dni': dni})
+
+    return jsonify({'error': 'No se pudo leer el código PDF417'}), 400
+
+
 
 
 load_dotenv()
 
-app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "etiqueta_secreta")
 
 def conectar_bd():
     ruta_db = os.getenv("DB_PATH", "datos.db")

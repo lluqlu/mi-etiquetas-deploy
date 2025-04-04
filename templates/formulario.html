@@ -129,7 +129,12 @@
 
                     <label class="required">Provincia</label>
                     <input type="text" name="prov_dest" required>
-                </div>
+                
+<!-- Cargar foto del DNI para autocompletar destinatario -->
+<label for="imagen_dni">Cargar foto del DNI (reverso):</label>
+<input type="file" id="imagen_dni" name="imagen_dni" accept="image/*">
+<button type="button" onclick="enviarImagen()" style="margin-top: 10px; padding: 10px;">Leer DNI</button>
+</div>
             </div>
 
             <div class="form-section">
@@ -161,6 +166,113 @@
             <button type="submit">Generar Etiqueta</button>
         </form>
     </div>
+
+<script>
+function enviarImagen() {
+    const input = document.getElementById('imagen_dni');
+    if (!input.files.length) {
+        alert("Por favor seleccioná una imagen.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('imagen_dni', input.files[0]);
+
+    fetch('/leer_dni', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.nombre) {
+            document.getElementsByName('destinatario')[0].value = data.nombre;
+            document.getElementsByName('dni_dest')[0].value = data.dni;
+        } else {
+            alert('No se pudo leer el DNI: ' + data.error);
+        }
+    })
+    .catch(err => alert('Ocurrió un error al procesar la imagen.'));
+}
+</script>
+
+
+<script type="module">
+import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.0.10/+esm';
+
+const codeReader = new BrowserMultiFormatReader();
+const codeReaderRem = new BrowserMultiFormatReader();
+
+function crearBoton(label, callback) {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.type = "button";
+    btn.style.marginTop = "10px";
+    btn.onclick = callback;
+    return btn;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const seccionDest = document.querySelector(".form-section:last-of-type");
+    const seccionRem = document.querySelector(".form-section:first-of-type");
+
+    seccionDest.appendChild(crearBoton("📷 Escanear DNI destinatario", () => {
+        codeReader.decodeOnceFromVideoDevice(undefined, 'video')
+            .then(result => {
+                const datos = result.text.split("@");
+                if (datos.length >= 5) {
+                    document.getElementsByName('destinatario')[0].value = `${datos[1]} ${datos[2]}`.trim();
+                    document.getElementsByName('dni_dest')[0].value = datos[4].replace(/^0+/, '');
+                    alert("DNI destinatario escaneado con éxito");
+                } else {
+                    alert("Formato no reconocido.");
+                }
+                codeReader.reset();
+                document.getElementById("video")?.remove();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("No se pudo leer el código.");
+                document.getElementById("video")?.remove();
+            });
+
+        if (!document.getElementById("video")) {
+            const video = document.createElement("video");
+            video.id = "video";
+            video.style = "width:100%; max-width:300px; margin-top:10px;";
+            seccionDest.appendChild(video);
+        }
+    }));
+
+    seccionRem.appendChild(crearBoton("📷 Escanear DNI remitente", () => {
+        codeReaderRem.decodeOnceFromVideoDevice(undefined, 'video_rem')
+            .then(result => {
+                const datos = result.text.split("@");
+                if (datos.length >= 5) {
+                    document.getElementsByName('remitente')[0].value = `${datos[1]} ${datos[2]}`.trim();
+                    document.getElementsByName('dni_rem')[0].value = datos[4].replace(/^0+/, '');
+                    alert("DNI remitente escaneado con éxito");
+                } else {
+                    alert("Formato no reconocido.");
+                }
+                codeReaderRem.reset();
+                document.getElementById("video_rem")?.remove();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("No se pudo leer el código.");
+                document.getElementById("video_rem")?.remove();
+            });
+
+        if (!document.getElementById("video_rem")) {
+            const video = document.createElement("video");
+            video.id = "video_rem";
+            video.style = "width:100%; max-width:300px; margin-top:10px;";
+            seccionRem.appendChild(video);
+        }
+    }));
+});
+</script>
+
 </body>
 </html>
 
