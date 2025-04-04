@@ -15,11 +15,6 @@ from dotenv import load_dotenv
 from io import StringIO
 
 from flask import request, jsonify
-from pyzbar.pyzbar import decode
-from PIL import Image
-
-UPLOAD_FOLDER = 'static/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "etiqueta_secreta")
