@@ -1,16 +1,32 @@
-# Bases de datos y backups
+# === BASES DE DATOS Y BACKUPS ===
 *.db
 *.sqlite
 *.csv
 *.json
 
-# Archivos temporales
+# === ARCHIVOS TEMPORALES DE PYTHON ===
 __pycache__/
 *.pyc
 *.pyo
+
+# === ARCHIVOS TEMPORALES DE WINDOWS ===
 *.Zone.Identifier
 
-# Archivos generados
+# === VARIABLES DE ENTORNO ===
+.env
+
+# === ARCHIVOS DE SALIDA / GENERADOS ===
 etiqueta_envio.pdf
 static/qr.png
 
+# === CARGAS TEMPORALES / SUBIDAS ===
+static/uploads/
+
+# === ARCHIVOS DE PRUEBA O AUXILIARES ===
+crear_tabla_visitas.py
+import
+
+# === HTMLS TEMPORALES DE PRUEBA (si no querés versionarlos) ===
+templates/formulario_cam_completo.html
+templates/formulario_cam_integrada.html
+templates/formulario_modificado.html
